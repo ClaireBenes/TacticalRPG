@@ -51,6 +51,8 @@ void AGridManager::UpdateGridPosition()
     // Clear previous debug grid
     FlushPersistentDebugLines(GetWorld());
 
+    TSet<FVector2D> ValidCells;
+
     // Draw the grid centered around the player
     for (int X = -GridSizeX / 2; X <= GridSizeX / 2; X++)
     {
@@ -59,21 +61,51 @@ void AGridManager::UpdateGridPosition()
             FVector CellLocation = PlayerLocation + FVector(X * CellSize, Y * CellSize, 0);
             FVector2D CellIndex = FVector2D(X + (PlayerLocation.X / CellSize), Y + (PlayerLocation.Y / CellSize));
 
-            // Check if it's within movement range
-            bool bCanMove = IsCellInRange(CellIndex);
-
-            // Draw cell outline
-            //DrawDebugBox(GetWorld(), CellLocation, FVector(CellSize / 2, CellSize / 2, 5), bCanMove ? FColor::Green : FColor::Red, true, -1, 0, 2);
-
             // Create an invisible actor for tiles that can be moved onto
-            if (bCanMove)
+            if (IsCellInRange(CellIndex))
             {
                 AActor* Tile = GetWorld()->SpawnActor<AActor>(AActor::StaticClass(), CellLocation, FRotator::ZeroRotator);
                 if (Tile)
                 {
+                    ValidCells.Add(CellIndex); // Store only valid movement tiles
                     Tile->Tags.Add("ValidTile"); // Mark this as a valid tile
                 }
             }
+        }
+    }
+
+    // Identify Edge Cells
+    for (FVector2D Cell : ValidCells)
+    {
+        FVector CellWorldLocation = FVector(Cell.X * CellSize, Cell.Y * CellSize, 5);
+        FVector TopLeft = CellWorldLocation + FVector(-CellSize / 2, CellSize / 2, 0);
+        FVector TopRight = CellWorldLocation + FVector(CellSize / 2, CellSize / 2, 0);
+        FVector BottomLeft = CellWorldLocation + FVector(-CellSize / 2, -CellSize / 2, 0);
+        FVector BottomRight = CellWorldLocation + FVector(CellSize / 2, -CellSize / 2, 0);
+
+        // Check adjacent tiles
+        FVector2D Neighbors[4] = {
+            FVector2D(Cell.X + 1, Cell.Y),
+            FVector2D(Cell.X - 1, Cell.Y),
+            FVector2D(Cell.X, Cell.Y + 1),
+            FVector2D(Cell.X, Cell.Y - 1)
+        };
+
+        if (!ValidCells.Contains(Neighbors[0])) // Right Edge
+        {
+            DrawDebugLine(GetWorld(), TopRight, BottomRight, FColor::Green, true, -1, 0, 3);
+        }
+        if (!ValidCells.Contains(Neighbors[1])) // Left Edge
+        {
+            DrawDebugLine(GetWorld(), TopLeft, BottomLeft, FColor::Green, true, -1, 0, 3);
+        }
+        if (!ValidCells.Contains(Neighbors[2])) // Top Edge
+        {
+            DrawDebugLine(GetWorld(), TopLeft, TopRight, FColor::Green, true, -1, 0, 3);
+        }
+        if (!ValidCells.Contains(Neighbors[3])) // Bottom Edge
+        {
+            DrawDebugLine(GetWorld(), BottomLeft, BottomRight, FColor::Green, true, -1, 0, 3);
         }
     }
 }
