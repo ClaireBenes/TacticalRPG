@@ -7,6 +7,10 @@
 
 #include "EngineUtils.h"
 
+#include "EnhancedInputComponent.h"
+#include "EnhancedInputSubsystems.h"
+#include "InputAction.h"
+
 // Sets default values
 APlayerCharacter::APlayerCharacter()
 {
@@ -34,6 +38,11 @@ void APlayerCharacter::BeginPlay()
 	if (PlayerController)
 	{
 		PlayerController->bShowMouseCursor = true; // Show cursor for click-based movement
+        
+        // Add default mapping context
+        UEnhancedInputLocalPlayerSubsystem* InputSubsystem = PlayerController->GetLocalPlayer()->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
+        verify(IsValid(InputSubsystem));
+        InputSubsystem->AddMappingContext(DefaultInputMappingContext, 0);
 	}
 
     // Find the GridManager in the world
@@ -87,8 +96,10 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+    UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
+
 	// Bind the left mouse click action
-	PlayerInputComponent->BindAction("ClickMove", IE_Pressed, this, &APlayerCharacter::OnClickMove);
+    EnhancedInputComponent->BindAction(ClickInputAction, ETriggerEvent::Started, this, &APlayerCharacter::OnClickMove);
 }
 
 void APlayerCharacter::OnClickMove()

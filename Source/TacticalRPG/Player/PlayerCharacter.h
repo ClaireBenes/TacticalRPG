@@ -4,6 +4,9 @@
 #include "GameFramework/Character.h"
 #include "PlayerCharacter.generated.h"
 
+class UInputAction;
+class UInputMappingContext;
+
 UCLASS()
 class TACTICALRPG_API APlayerCharacter : public ACharacter
 {
@@ -45,6 +48,11 @@ private:
 	// Max number of squares per turn
 	UPROPERTY(EditAnywhere, Category = "Grid")
 	int MaxMoveRange = 3; 
+
+	UPROPERTY(EditAnywhere, Category = "Input")
+	UInputAction* ClickInputAction = nullptr;
+	UPROPERTY(EditAnywhere, Category = "Input")
+	UInputMappingContext* DefaultInputMappingContext = nullptr;
 
 	FVector TargetLocation;
 	bool bIsMoving = false;
