@@ -20,7 +20,7 @@ protected:
 	UFUNCTION()
 	void OnClickMove(); // Called when clicking on the grid
 
-	void MoveToGridCell(FVector TargetLocation);
+	void MoveToGridCell(FVector NewTargetLocation);
 
 public:	
 	// Called every frame
@@ -43,6 +43,12 @@ private:
 	// Max number of squares per turn
 	UPROPERTY(EditAnywhere, Category = "Grid")
 	int MaxMoveRange = 3; 
+
+	FVector TargetLocation;
+	bool bIsMoving = false;
+
+	UPROPERTY(EditAnywhere, Category = "Movement")
+	float MoveSpeed = 300.0f; // Units per second
 
 	APlayerController* PlayerController;
 	class AGridManager* GridManager;

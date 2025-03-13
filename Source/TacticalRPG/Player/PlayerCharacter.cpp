@@ -11,7 +11,7 @@
 APlayerCharacter::APlayerCharacter()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 
 	// Create the SpringArm
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
@@ -49,6 +49,21 @@ void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+    if (bIsMoving)
+    {
+        FVector CurrentLocation = GetActorLocation();
+
+        // Move smoothly using interpolation
+        FVector NewLocation = FMath::VInterpConstantTo(CurrentLocation, TargetLocation, DeltaTime, MoveSpeed);
+        SetActorLocation(NewLocation);
+
+        // Check if the character has reached the destination
+        if (FVector::Dist(CurrentLocation, TargetLocation) < 5.0f)
+        {
+            SetActorLocation(TargetLocation); // Snap to final position
+            bIsMoving = false; // Stop moving
+        }
+    }
 }
 
 // Called to bind functionality to input
@@ -83,8 +98,8 @@ void APlayerCharacter::OnClickMove()
             // Ask GridManager if this move is valid
             if (GridManager->IsCellInRange(ClickedCell))
             {
-                FVector TargetLocation = FVector(ClickedCellX * GridSize, ClickedCellY * GridSize, GetActorLocation().Z);
-                MoveToGridCell(TargetLocation);
+                FVector NextTargetLocation = FVector(ClickedCellX * GridSize, ClickedCellY * GridSize, GetActorLocation().Z);
+                MoveToGridCell(NextTargetLocation);
             }
             else
             {
@@ -94,9 +109,10 @@ void APlayerCharacter::OnClickMove()
     }
 }
 
-void APlayerCharacter::MoveToGridCell(FVector TargetLocation)
+void APlayerCharacter::MoveToGridCell(FVector NewTargetLocation)
 {
-    SetActorLocation(TargetLocation);
+    TargetLocation = NewTargetLocation; // Store the new movement target
+    bIsMoving = true; // Enable movement logic
 }
 
 
