@@ -3,6 +3,10 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 
+#include "TacticalRPG/Grid/GridManager.h"
+
+#include "EngineUtils.h"
+
 // Sets default values
 APlayerCharacter::APlayerCharacter()
 {
@@ -31,6 +35,13 @@ void APlayerCharacter::BeginPlay()
 	{
 		PlayerController->bShowMouseCursor = true; // Show cursor for click-based movement
 	}
+
+    // Find the GridManager in the world
+    for (TActorIterator<AGridManager> It(GetWorld()); It; ++It)
+    {
+        GridManager = *It;
+        break; // Stop after finding the first instance
+    }
 }
 
 // Called every frame
@@ -51,39 +62,33 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 void APlayerCharacter::OnClickMove()
 {
-    if (!IsValid(PlayerController)) return;
+    if (!IsValid(PlayerController) || !IsValid(GridManager)) return;
 
     // Get mouse position in the world
     FVector WorldLocation, WorldDirection;
     if (PlayerController->DeprojectMousePositionToWorld(WorldLocation, WorldDirection))
     {
-        // Perform a line trace to detect grid cells
         FVector Start = WorldLocation;
-        FVector End = Start + (WorldDirection * 10000); // Cast ray far enough to hit something
+        FVector End = Start + (WorldDirection * 10000);
 
         FHitResult HitResult;
-        FCollisionQueryParams Params;
-        Params.AddIgnoredActor(this); // Ignore the character itself
-
-        if (GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, Params))
+        if (GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility))
         {
-            FVector TargetLocation = HitResult.Location;
+            FVector ClickedLocation = HitResult.Location;
 
-            // Snap to nearest grid cell
-            int ClickedCellX = FMath::RoundToInt(TargetLocation.X / GridSize) * GridSize;
-            int ClickedCellY = FMath::RoundToInt(TargetLocation.Y / GridSize) * GridSize;
-            TargetLocation.Z = GetActorLocation().Z; // Keep same height
-
+            int ClickedCellX = FMath::RoundToInt(ClickedLocation.X / GridSize);
+            int ClickedCellY = FMath::RoundToInt(ClickedLocation.Y / GridSize);
             FVector2D ClickedCell(ClickedCellX, ClickedCellY);
 
-            // Check if movement is allowed
-            if (IsCellWithinRange(TargetLocation))
+            // Ask GridManager if this move is valid
+            if (GridManager->IsCellInRange(ClickedCell))
             {
+                FVector TargetLocation = FVector(ClickedCellX * GridSize, ClickedCellY * GridSize, GetActorLocation().Z);
                 MoveToGridCell(TargetLocation);
             }
             else
             {
-                UE_LOG(LogTemp, Warning, TEXT("Invalid Move: Out of range!"));
+                UE_LOG(LogTemp, Warning, TEXT("Invalid Move: This tile is out of range!"));
             }
         }
     }
@@ -92,47 +97,6 @@ void APlayerCharacter::OnClickMove()
 void APlayerCharacter::MoveToGridCell(FVector TargetLocation)
 {
     SetActorLocation(TargetLocation);
-}
-
-bool APlayerCharacter::IsCellWithinRange(FVector TargetLocation)
-{
-    // Get the character's current position in grid coordinates
-    FVector CurrentLocation = GetActorLocation();
-    int PlayerX = FMath::RoundToInt(CurrentLocation.X / GridSize);
-    int PlayerY = FMath::RoundToInt(CurrentLocation.Y / GridSize);
-
-    // Calculate Manhattan distance
-    int DistanceX = FMath::Abs(PlayerX - CellIndex.X);
-    int DistanceY = FMath::Abs(PlayerY - CellIndex.Y);
-
-    // Check if the cell is within range
-    bool bIsWithinRange = (DistanceX + DistanceY) <= MaxMoveRange;
-
-    // Now, check if the tile is actually green (valid move)
-    if (!bIsWithinRange)
-    {
-        return false;
-    }
-
-    // Here, we add an additional check: Is the tile REALLY a valid move tile?
-    FVector TileWorldPosition = FVector(CellIndex.X * CellSize, CellIndex.Y * CellSize, GetActorLocation().Z);
-
-    // Perform a trace to check if the tile is green (this assumes debug colors are temporary)
-    FHitResult HitResult;
-    FCollisionQueryParams Params;
-    Params.AddIgnoredActor(this); // Ignore self
-
-    if (GetWorld()->LineTraceSingleByChannel(HitResult, TileWorldPosition + FVector(0, 0, 50), TileWorldPosition - FVector(0, 0, 50), ECC_Visibility, Params))
-    {
-        // If the hit object has a valid material/color for "green", allow movement
-        if (HitResult.Actor.IsValid() && HitResult.Actor->ActorHasTag("ValidTile"))
-        {
-            return true;
-        }
-    }
-
-    // Otherwise, block movement to the tile
-    return false;
 }
 
 

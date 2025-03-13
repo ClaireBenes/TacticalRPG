@@ -21,11 +21,13 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+    // Check if a given grid cell is valid for movement
+    bool IsCellInRange(FVector2D CellIndex);
+
 private:
     void GenerateGrid();
     void UpdateGridPosition();
     void UpdateHoveredCell();
-    bool IsCellInRange(FVector2D CellIndex);
 
     UPROPERTY(EditAnywhere, Category = "Grid Settings")
     int GridSizeX = 10;
@@ -43,7 +45,7 @@ private:
     APlayerController* PlayerController;
 
     UPROPERTY()
-    ACharacter* Player;
+    ACharacter* PlayerCharacter;
 
     UPROPERTY()
     UMaterialInstanceDynamic* HoverMaterial;

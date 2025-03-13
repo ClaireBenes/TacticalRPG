@@ -16,7 +16,7 @@ void AGridManager::BeginPlay()
 	Super::BeginPlay();
 	
 	PlayerController = GetWorld()->GetFirstPlayerController();
-    Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+    PlayerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
 	GenerateGrid();
 }
 
@@ -42,9 +42,9 @@ void AGridManager::GenerateGrid()
 
 void AGridManager::UpdateGridPosition()
 {
-    if (!IsValid(Player)) return;
+    if (!IsValid(PlayerCharacter)) return;
 
-    FVector PlayerLocation = Player->GetActorLocation();
+    FVector PlayerLocation = PlayerCharacter->GetActorLocation();
     PlayerLocation.X = FMath::RoundToInt(PlayerLocation.X / CellSize) * CellSize;
     PlayerLocation.Y = FMath::RoundToInt(PlayerLocation.Y / CellSize) * CellSize;
     PlayerLocation.Z = 0;
@@ -58,7 +58,23 @@ void AGridManager::UpdateGridPosition()
         for (int Y = -GridSizeY / 2; Y <= GridSizeY / 2; Y++)
         {
             FVector CellLocation = PlayerLocation + FVector(X * CellSize, Y * CellSize, 0);
-            DrawDebugBox(GetWorld(), CellLocation, FVector(CellSize / 2, CellSize / 2, 5), FColor::White, true, -1, 0, 2);
+            FVector2D CellIndex = FVector2D(X + (PlayerLocation.X / CellSize), Y + (PlayerLocation.Y / CellSize));
+
+            // Check if it's within movement range
+            bool bCanMove = IsCellInRange(CellIndex);
+
+            // Draw cell outline
+            DrawDebugBox(GetWorld(), CellLocation, FVector(CellSize / 2, CellSize / 2, 5), bCanMove ? FColor::Green : FColor::Red, true, -1, 0, 2);
+
+            // Create an invisible actor for tiles that can be moved onto
+            if (bCanMove)
+            {
+                AActor* Tile = GetWorld()->SpawnActor<AActor>(AActor::StaticClass(), CellLocation, FRotator::ZeroRotator);
+                if (Tile)
+                {
+                    Tile->Tags.Add("ValidTile"); // Mark this as a valid tile
+                }
+            }
         }
     }
 }
@@ -95,16 +111,38 @@ void AGridManager::UpdateHoveredCell()
 bool AGridManager::IsCellInRange(FVector2D CellIndex)
 {
     // Get character position
-    ACharacter* PlayerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
     if (!IsValid(PlayerCharacter)) return false;
 
-    int PlayerX = FMath::RoundToInt(PlayerCharacter->GetActorLocation().X / CellSize);
-    int PlayerY = FMath::RoundToInt(PlayerCharacter->GetActorLocation().Y / CellSize);
+    // Get the player's current grid position
+    FVector CurrentLocation = PlayerCharacter->GetActorLocation();
+    int PlayerX = FMath::RoundToInt(CurrentLocation.X / CellSize);
+    int PlayerY = FMath::RoundToInt(CurrentLocation.Y / CellSize);
 
     // Calculate Manhattan distance
     int DistanceX = FMath::Abs(PlayerX - CellIndex.X);
     int DistanceY = FMath::Abs(PlayerY - CellIndex.Y);
 
-    return (DistanceX + DistanceY) <= MaxMoveRange;
+    bool bIsWithinRange = (DistanceX + DistanceY) <= MaxMoveRange;
+
+    // If the tile is out of range, return false
+    if (!bIsWithinRange)
+    {
+        return false;
+    }
+
+    // OPTIONAL: If you have obstacles, check if the tile is occupied
+    FHitResult HitResult;
+    FVector TileWorldPosition = FVector(CellIndex.X * CellSize, CellIndex.Y * CellSize, PlayerCharacter->GetActorLocation().Z);
+
+    if (GetWorld()->LineTraceSingleByChannel(HitResult, TileWorldPosition + FVector(0, 0, 50), TileWorldPosition - FVector(0, 0, 50), ECC_Visibility))
+    {
+        AActor* HitActor = HitResult.GetActor();
+        if (HitActor != nullptr && HitActor->ActorHasTag("BlockedTile"))
+        {
+            return false; // Tile is blocked
+        }
+    }
+
+    return true; // Otherwise, the cell is valid for movement
 }
 

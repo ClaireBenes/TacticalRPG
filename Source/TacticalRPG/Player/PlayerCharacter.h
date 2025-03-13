@@ -21,7 +21,6 @@ protected:
 	void OnClickMove(); // Called when clicking on the grid
 
 	void MoveToGridCell(FVector TargetLocation);
-	bool IsCellWithinRange(FVector TargetLocation);
 
 public:	
 	// Called every frame
@@ -46,4 +45,5 @@ private:
 	int MaxMoveRange = 3; 
 
 	APlayerController* PlayerController;
+	class AGridManager* GridManager;
 };
