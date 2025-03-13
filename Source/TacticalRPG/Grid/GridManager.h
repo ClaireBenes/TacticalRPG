@@ -21,12 +21,16 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+    UFUNCTION(BlueprintCallable, Category = "Grid")
+    void HideMovementGrid();
+    UFUNCTION(BlueprintCallable, Category = "Grid")
+    void UpdateGridPosition();
+
     // Check if a given grid cell is valid for movement
     bool IsCellInRange(FVector2D CellIndex);
 
 private:
     void GenerateGrid();
-    void UpdateGridPosition();
     void UpdateHoveredCell();
 
     UPROPERTY(EditAnywhere, Category = "Grid Settings")
@@ -52,5 +56,7 @@ private:
 
     UPROPERTY()
     AActor* HoveredCell;
+
+    TSet<FVector2D> ValidCells; // Stores all valid movement cells
 
 };

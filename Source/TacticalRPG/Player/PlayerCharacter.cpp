@@ -62,6 +62,9 @@ void APlayerCharacter::Tick(float DeltaTime)
         {
             SetActorLocation(TargetLocation); // Snap to final position
             bIsMoving = false; // Stop moving
+
+            // Show movement grid again
+            GridManager->UpdateGridPosition();
         }
     }
 }
@@ -78,6 +81,13 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 void APlayerCharacter::OnClickMove()
 {
     if (!IsValid(PlayerController) || !IsValid(GridManager)) return;
+
+    // Prevent movement if already moving
+    if (bIsMoving)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Can't move: Character is still moving!"));
+        return;
+    }
 
     // Get mouse position in the world
     FVector WorldLocation, WorldDirection;
@@ -99,6 +109,10 @@ void APlayerCharacter::OnClickMove()
             if (GridManager->IsCellInRange(ClickedCell))
             {
                 FVector NextTargetLocation = FVector(ClickedCellX * GridSize, ClickedCellY * GridSize, GetActorLocation().Z);
+
+                // Hide movement grid before starting movement
+                GridManager->HideMovementGrid();
+
                 MoveToGridCell(NextTargetLocation);
             }
             else

@@ -17,7 +17,7 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable, Category = "Movement")
 	void OnClickMove(); // Called when clicking on the grid
 
 	void MoveToGridCell(FVector NewTargetLocation);
@@ -28,6 +28,8 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	bool IsCharacterMoving() const { return bIsMoving; }
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Camera")

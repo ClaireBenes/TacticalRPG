@@ -3,6 +3,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Character.h"
 
+#include "TacticalRPG/Player/PlayerCharacter.h"
+
 // Sets default values
 AGridManager::AGridManager()
 {
@@ -43,6 +45,12 @@ void AGridManager::UpdateGridPosition()
 {
     if (!IsValid(PlayerCharacter)) return;
 
+    APlayerCharacter* Player = Cast<APlayerCharacter>(PlayerCharacter);
+    if (Player && Player->IsCharacterMoving())
+    {
+        return; // Do NOT update grid if character is moving
+    }
+
     FVector PlayerLocation = PlayerCharacter->GetActorLocation();
     PlayerLocation.X = FMath::RoundToInt(PlayerLocation.X / CellSize) * CellSize;
     PlayerLocation.Y = FMath::RoundToInt(PlayerLocation.Y / CellSize) * CellSize;
@@ -50,8 +58,7 @@ void AGridManager::UpdateGridPosition()
 
     // Clear previous debug grid
     FlushPersistentDebugLines(GetWorld());
-
-    TSet<FVector2D> ValidCells;
+    ValidCells.Empty();
 
     // Draw the grid centered around the player
     for (int X = -GridSizeX / 2; X <= GridSizeX / 2; X++)
@@ -64,12 +71,7 @@ void AGridManager::UpdateGridPosition()
             // Create an invisible actor for tiles that can be moved onto
             if (IsCellInRange(CellIndex))
             {
-                AActor* Tile = GetWorld()->SpawnActor<AActor>(AActor::StaticClass(), CellLocation, FRotator::ZeroRotator);
-                if (Tile)
-                {
-                    ValidCells.Add(CellIndex); // Store only valid movement tiles
-                    Tile->Tags.Add("ValidTile"); // Mark this as a valid tile
-                }
+                ValidCells.Add(CellIndex); // Store only valid movement tiles
             }
         }
     }
@@ -137,6 +139,13 @@ void AGridManager::UpdateHoveredCell()
             DrawDebugBox(GetWorld(), FVector(CellX * CellSize, CellY * CellSize, 5), FVector(CellSize / 2, CellSize / 2, 5), bCanMove ? FColor::Green : FColor::Red, false, -1, 0, 5);
         }
     }
+}
+
+void AGridManager::HideMovementGrid()
+{
+    // Completely override all drawn debug lines by redrawing with transparent color
+    FlushPersistentDebugLines(GetWorld());
+    ValidCells.Empty();
 }
 
 bool AGridManager::IsCellInRange(FVector2D CellIndex)
