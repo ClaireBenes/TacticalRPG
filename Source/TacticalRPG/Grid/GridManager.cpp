@@ -35,7 +35,6 @@ void AGridManager::GenerateGrid()
 		for (int Y = 0; Y < GridSizeY; Y++)
 		{
 			FVector CellLocation = FVector(X * CellSize, Y * CellSize, 0);
-			DrawDebugBox(GetWorld(), CellLocation, FVector(CellSize / 2, CellSize / 2, 5), FColor::White, true, -1, 0, 2);
 		}
 	}
 }
@@ -64,7 +63,7 @@ void AGridManager::UpdateGridPosition()
             bool bCanMove = IsCellInRange(CellIndex);
 
             // Draw cell outline
-            DrawDebugBox(GetWorld(), CellLocation, FVector(CellSize / 2, CellSize / 2, 5), bCanMove ? FColor::Green : FColor::Red, true, -1, 0, 2);
+            //DrawDebugBox(GetWorld(), CellLocation, FVector(CellSize / 2, CellSize / 2, 5), bCanMove ? FColor::Green : FColor::Red, true, -1, 0, 2);
 
             // Create an invisible actor for tiles that can be moved onto
             if (bCanMove)
