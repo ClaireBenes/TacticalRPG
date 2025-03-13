@@ -57,6 +57,19 @@ void APlayerCharacter::Tick(float DeltaTime)
         FVector NewLocation = FMath::VInterpConstantTo(CurrentLocation, TargetLocation, DeltaTime, MoveSpeed);
         SetActorLocation(NewLocation);
 
+        // Rotate Character to Face the Target
+        FVector MoveDirection = (TargetLocation - CurrentLocation).GetSafeNormal();
+        if (!MoveDirection.IsNearlyZero()) // Ensure we have a valid direction
+        {
+            FRotator TargetRotation = MoveDirection.Rotation();
+
+            // Apply Offset (Adjust Yaw by -90° if necessary)
+            TargetRotation.Yaw -= 90.0f;
+
+            FRotator NewRotation = FMath::RInterpTo(GetMesh()->GetComponentRotation(), TargetRotation, DeltaTime, 10.0f); // Smooth rotation speed
+            GetMesh()->SetWorldRotation(NewRotation); // Rotate only the mesh
+        }
+
         // Check if the character has reached the destination
         if (FVector::Dist(CurrentLocation, TargetLocation) < 5.0f)
         {

@@ -46,7 +46,7 @@ void AGridManager::UpdateGridPosition()
     if (!IsValid(PlayerCharacter)) return;
 
     APlayerCharacter* Player = Cast<APlayerCharacter>(PlayerCharacter);
-    if (Player && Player->IsCharacterMoving())
+    if (IsValid(Player) && Player->IsCharacterMoving())
     {
         return; // Do NOT update grid if character is moving
     }
@@ -115,6 +115,12 @@ void AGridManager::UpdateGridPosition()
 void AGridManager::UpdateHoveredCell()
 {
     if (!IsValid(PlayerController)) return;
+
+    APlayerCharacter* Player = Cast<APlayerCharacter>(PlayerCharacter);
+    if (IsValid(Player) && Player->IsCharacterMoving())
+    {
+        return; // Do NOT update hovered cell if character is moving
+    }
 
     FVector WorldLocation, WorldDirection;
     if (PlayerController->DeprojectMousePositionToWorld(WorldLocation, WorldDirection))
