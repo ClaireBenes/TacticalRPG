@@ -4,9 +4,6 @@
 #include "GameFramework/Character.h"
 #include "PlayerCharacter.generated.h"
 
-class UInputAction;
-class UInputMappingContext;
-
 UCLASS()
 class TACTICALRPG_API APlayerCharacter : public ACharacter
 {
@@ -20,19 +17,16 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	UFUNCTION(BlueprintCallable, Category = "Movement")
-	void OnClickMove(); // Called when clicking on the grid
-
-	void MoveToGridCell(FVector NewTargetLocation);
 
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	void MoveToGridCell(FVector NewTargetLocation);
 
+	//Getters
 	bool IsCharacterMoving() const { return bIsMoving; }
+	float GetGridSize() const { return GridSize; }
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Camera")
@@ -49,17 +43,11 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Grid")
 	int MaxMoveRange = 3; 
 
-	UPROPERTY(EditAnywhere, Category = "Input")
-	UInputAction* ClickInputAction = nullptr;
-	UPROPERTY(EditAnywhere, Category = "Input")
-	UInputMappingContext* DefaultInputMappingContext = nullptr;
+	UPROPERTY(EditAnywhere, Category = "Movement")
+	float MoveSpeed = 300.0f; // Units per second
 
 	FVector TargetLocation;
 	bool bIsMoving = false;
 
-	UPROPERTY(EditAnywhere, Category = "Movement")
-	float MoveSpeed = 300.0f; // Units per second
-
-	APlayerController* PlayerController;
 	class AGridManager* GridManager;
 };

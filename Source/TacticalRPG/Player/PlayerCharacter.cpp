@@ -7,10 +7,6 @@
 
 #include "EngineUtils.h"
 
-#include "EnhancedInputComponent.h"
-#include "EnhancedInputSubsystems.h"
-#include "InputAction.h"
-
 // Sets default values
 APlayerCharacter::APlayerCharacter()
 {
@@ -33,17 +29,6 @@ APlayerCharacter::APlayerCharacter()
 void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-
-	PlayerController = Cast<APlayerController>(GetController());
-	if (PlayerController)
-	{
-		PlayerController->bShowMouseCursor = true; // Show cursor for click-based movement
-        
-        // Add default mapping context
-        UEnhancedInputLocalPlayerSubsystem* InputSubsystem = PlayerController->GetLocalPlayer()->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
-        verify(IsValid(InputSubsystem));
-        InputSubsystem->AddMappingContext(DefaultInputMappingContext, 0);
-	}
 
     // Find the GridManager in the world
     for (TActorIterator<AGridManager> It(GetWorld()); It; ++It)
@@ -87,62 +72,6 @@ void APlayerCharacter::Tick(float DeltaTime)
 
             // Show movement grid again
             GridManager->UpdateGridPosition();
-        }
-    }
-}
-
-// Called to bind functionality to input
-void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-    UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
-
-	// Bind the left mouse click action
-    EnhancedInputComponent->BindAction(ClickInputAction, ETriggerEvent::Started, this, &APlayerCharacter::OnClickMove);
-}
-
-void APlayerCharacter::OnClickMove()
-{
-    if (!IsValid(PlayerController) || !IsValid(GridManager)) return;
-
-    // Prevent movement if already moving
-    if (bIsMoving)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("Can't move: Character is still moving!"));
-        return;
-    }
-
-    // Get mouse position in the world
-    FVector WorldLocation, WorldDirection;
-    if (PlayerController->DeprojectMousePositionToWorld(WorldLocation, WorldDirection))
-    {
-        FVector Start = WorldLocation;
-        FVector End = Start + (WorldDirection * 10000);
-
-        FHitResult HitResult;
-        if (GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility))
-        {
-            FVector ClickedLocation = HitResult.Location;
-
-            int ClickedCellX = FMath::RoundToInt(ClickedLocation.X / GridSize);
-            int ClickedCellY = FMath::RoundToInt(ClickedLocation.Y / GridSize);
-            FVector2D ClickedCell(ClickedCellX, ClickedCellY);
-
-            // Ask GridManager if this move is valid
-            if (GridManager->IsCellInRange(ClickedCell))
-            {
-                FVector NextTargetLocation = FVector(ClickedCellX * GridSize, ClickedCellY * GridSize, GetActorLocation().Z);
-
-                // Hide movement grid before starting movement
-                GridManager->HideMovementGrid();
-
-                MoveToGridCell(NextTargetLocation);
-            }
-            else
-            {
-                UE_LOG(LogTemp, Warning, TEXT("Invalid Move: This tile is out of range!"));
-            }
         }
     }
 }
