@@ -8,6 +8,8 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/PlayerController.h"
+#include "Components/ArrowComponent.h"
+
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputAction.h"
@@ -125,6 +127,8 @@ void APlayerCharacterController::Click()
 
 void APlayerCharacterController::Zoom(const FInputActionValue& Value)
 {
+    if (!IsValid(CameraPawn)) return;
+
     float MouseWheelValue = Value.Get<float>();
 
     float ClampInValue = (CameraPawn->DesiredArmLenght + ((MouseWheelValue * (-1)) * CameraData->ZoomInputStep));
@@ -135,6 +139,8 @@ void APlayerCharacterController::Zoom(const FInputActionValue& Value)
 
 void APlayerCharacterController::MoveCamera(const FInputActionValue& Value)
 {
+    if (!IsValid(CameraPawn)) return;
+
     FVector2D Values = Value.Get<FVector2D>();
 
     CameraPawn->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
@@ -144,7 +150,7 @@ void APlayerCharacterController::MoveCamera(const FInputActionValue& Value)
 
     CameraPawn->AddMovementInput(SideWorldDirection, SideScaleValues);
 
-    FVector ForwardWorldDirection = CameraPawn->GetActorForwardVector();
+    FVector ForwardWorldDirection = CameraPawn->ForwardArrow->GetForwardVector();
     float ForwardScaleValues = Values.Y * CameraData->ForwardSpeed;
 
     CameraPawn->AddMovementInput(ForwardWorldDirection, ForwardScaleValues);
@@ -152,17 +158,26 @@ void APlayerCharacterController::MoveCamera(const FInputActionValue& Value)
 
 void APlayerCharacterController::RotateCamera()
 {
+    if (!IsValid(CameraPawn)) return;
+
     FRotator SpringArmRotation = CameraPawn->SpringArm->GetComponentRotation();
     float RotX = SpringArmRotation.Roll;
 
-    float X = 0, Y = 0;
+    float X = 0.0f, Y = 0.0f;
     GetInputMouseDelta(X, Y);
 
-    float ClampInValue = (Y * CameraData->SpeedGyroscope) + SpringArmRotation.Pitch;
+    // Prevent teleporting by ensuring there's actual input
+    if (FMath::IsNearlyZero(X) && FMath::IsNearlyZero(Y)) return;
+
+    float Speed = CameraData->SpeedGyroscope;
+
+    float ClampInValue = (Y * Speed) + SpringArmRotation.Pitch;
     float RotY = FMath::Clamp(ClampInValue, CameraData->MinYRotation, CameraData->MaxYRotation);
 
-    float RotZ = (X * CameraData->SpeedGyroscope) + SpringArmRotation.Yaw;
+    float RotZ = (X * Speed) + SpringArmRotation.Yaw;
 
-    FVector NewRotation = FVector(RotX, RotY, RotZ);
-    CameraPawn->SpringArm->SetWorldLocation(NewRotation);
+    CameraPawn->SpringArm->SetWorldRotation(FRotator(RotY, RotZ, RotX));
+
+    float SpringArmRotZ = CameraPawn->SpringArm->GetComponentRotation().Yaw;
+    CameraPawn->ForwardArrow->SetWorldRotation(FRotator(0.0f, SpringArmRotZ, 0.0f));
 }

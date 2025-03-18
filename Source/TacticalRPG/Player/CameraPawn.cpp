@@ -17,6 +17,10 @@ ACameraPawn::ACameraPawn()
 	NewRootComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Root"));
 	NewRootComponent->SetupAttachment(RootComponent);
 
+	// Create the Arrow
+	ForwardArrow = CreateDefaultSubobject<UArrowComponent>(TEXT("Arrow"));
+	ForwardArrow->SetupAttachment(NewRootComponent);
+
 	// Create the SpringArm
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(NewRootComponent);

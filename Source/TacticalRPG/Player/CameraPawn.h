@@ -29,6 +29,9 @@ public:
 	class UCameraData* CameraData = nullptr;
 
 	UPROPERTY(VisibleAnywhere, Category = "Camera")
+	class UArrowComponent* ForwardArrow = nullptr;
+
+	UPROPERTY(VisibleAnywhere, Category = "Camera")
 	class UCameraComponent* TopDownCamera = nullptr;
 
 	UPROPERTY(VisibleAnywhere, Category = "Camera|SpringArm")
