@@ -6,6 +6,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputAction.h"
 
+#include "Kismet/GameplayStatics.h"
 #include "EngineUtils.h"
 
 APlayerCharacterController::APlayerCharacterController()
@@ -18,7 +19,8 @@ void APlayerCharacterController::BeginPlay()
     Super::BeginPlay();
 
     // Get the controlled PlayerCharacter
-    ControlledCharacter = Cast<APlayerCharacter>(GetPawn());
+    AActor* FoundActor = UGameplayStatics::GetActorOfClass(GetWorld(), APlayerCharacter::StaticClass());
+    ControlledCharacter = Cast<APlayerCharacter>(FoundActor);
 
     // Find GridManager in the world
     for (TActorIterator<AGridManager> It(GetWorld()); It; ++It)
