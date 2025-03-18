@@ -3,6 +3,7 @@
 #include "GameFramework/FloatingPawnMovement.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
+#include "Components/ArrowComponent.h"
 
 #include "TacticalRPG/DataAsset/CameraData.h"
 

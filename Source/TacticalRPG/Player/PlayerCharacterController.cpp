@@ -5,6 +5,9 @@
 #include "TacticalRPG/Grid/GridManager.h"
 #include "TacticalRPG/DataAsset/CameraData.h"
 
+#include "Camera/CameraComponent.h"
+#include "GameFramework/SpringArmComponent.h"
+#include "GameFramework/PlayerController.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputAction.h"
@@ -133,8 +136,33 @@ void APlayerCharacterController::Zoom(const FInputActionValue& Value)
 void APlayerCharacterController::MoveCamera(const FInputActionValue& Value)
 {
     FVector2D Values = Value.Get<FVector2D>();
+
+    CameraPawn->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+
+    FVector SideWorldDirection = CameraPawn->TopDownCamera->GetRightVector();
+    float SideScaleValues = Values.X * CameraData->SideSpeed;
+
+    CameraPawn->AddMovementInput(SideWorldDirection, SideScaleValues);
+
+    FVector ForwardWorldDirection = CameraPawn->GetActorForwardVector();
+    float ForwardScaleValues = Values.Y * CameraData->ForwardSpeed;
+
+    CameraPawn->AddMovementInput(ForwardWorldDirection, ForwardScaleValues);
 }
 
 void APlayerCharacterController::RotateCamera()
 {
+    FRotator SpringArmRotation = CameraPawn->SpringArm->GetComponentRotation();
+    float RotX = SpringArmRotation.Roll;
+
+    float X = 0, Y = 0;
+    GetInputMouseDelta(X, Y);
+
+    float ClampInValue = (Y * CameraData->SpeedGyroscope) + SpringArmRotation.Pitch;
+    float RotY = FMath::Clamp(ClampInValue, CameraData->MinYRotation, CameraData->MaxYRotation);
+
+    float RotZ = (X * CameraData->SpeedGyroscope) + SpringArmRotation.Yaw;
+
+    FVector NewRotation = FVector(RotX, RotY, RotZ);
+    CameraPawn->SpringArm->SetWorldLocation(NewRotation);
 }

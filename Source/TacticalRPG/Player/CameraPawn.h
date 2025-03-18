@@ -28,6 +28,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Data Asset")
 	class UCameraData* CameraData = nullptr;
 
+	UPROPERTY(VisibleAnywhere, Category = "Camera")
+	class UCameraComponent* TopDownCamera = nullptr;
+
+	UPROPERTY(VisibleAnywhere, Category = "Camera|SpringArm")
+	class USpringArmComponent* SpringArm = nullptr;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera|SpringArm")
 	float DesiredArmLenght = 100.0f;
 
@@ -36,11 +42,5 @@ private:
 	class UFloatingPawnMovement* FloatingPawnMovement = nullptr;
 
 	UPROPERTY(VisibleAnywhere, Category = "Root")
-	class UStaticMeshComponent* NewRootComponent = nullptr;
-
-	UPROPERTY(VisibleAnywhere, Category = "Camera|SpringArm")
-	class USpringArmComponent* SpringArm = nullptr;
-
-	UPROPERTY(VisibleAnywhere, Category = "Camera")
-	class UCameraComponent* TopDownCamera = nullptr;	
+	class UStaticMeshComponent* NewRootComponent = nullptr;	
 };
