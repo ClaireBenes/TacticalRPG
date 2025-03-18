@@ -1,6 +1,9 @@
 #include "TacticalRPG/Player/PlayerCharacterController.h"
+
 #include "TacticalRPG/Player/PlayerCharacter.h"
+#include "TacticalRPG/Player/CameraPawn.h"
 #include "TacticalRPG/Grid/GridManager.h"
+#include "TacticalRPG/DataAsset/CameraData.h"
 
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -21,6 +24,8 @@ void APlayerCharacterController::BeginPlay()
     // Get the controlled PlayerCharacter
     AActor* FoundActor = UGameplayStatics::GetActorOfClass(GetWorld(), APlayerCharacter::StaticClass());
     ControlledCharacter = Cast<APlayerCharacter>(FoundActor);
+
+    CameraPawn = Cast<ACameraPawn>(GetPawn());
 
     // Find GridManager in the world
     for (TActorIterator<AGridManager> It(GetWorld()); It; ++It)
@@ -47,11 +52,26 @@ void APlayerCharacterController::SetupInputComponent()
 
     if (ClickInputAction)
     {
-        EnhancedInputComponent->BindAction(ClickInputAction, ETriggerEvent::Started, this, &APlayerCharacterController::OnClickMove);
+        EnhancedInputComponent->BindAction(ClickInputAction, ETriggerEvent::Started, this, &APlayerCharacterController::MoveCharacter);
+    }
+
+    if (ZoomInputAction)
+    {
+        EnhancedInputComponent->BindAction(ZoomInputAction, ETriggerEvent::Triggered, this, &APlayerCharacterController::Zoom);
+    }
+
+    if (MoveCameraInputAction)
+    {
+        EnhancedInputComponent->BindAction(MoveCameraInputAction, ETriggerEvent::Triggered, this, &APlayerCharacterController::MoveCamera);
+    }
+
+    if (GyroscopeCameraInputAction)
+    {
+        EnhancedInputComponent->BindAction(GyroscopeCameraInputAction, ETriggerEvent::Triggered, this, &APlayerCharacterController::RotateCamera);
     }
 }
 
-void APlayerCharacterController::OnClickMove()
+void APlayerCharacterController::MoveCharacter()
 {
     if (!IsValid(ControlledCharacter) || !IsValid(GridManager)) return;
 
@@ -94,4 +114,27 @@ void APlayerCharacterController::OnClickMove()
             }
         }
     }
+}
+
+void APlayerCharacterController::Click()
+{
+}
+
+void APlayerCharacterController::Zoom(const FInputActionValue& Value)
+{
+    float MouseWheelValue = Value.Get<float>();
+
+    float ClampInValue = (CameraPawn->DesiredArmLenght + ((MouseWheelValue * (-1)) * CameraData->ZoomInputStep));
+    float ClampOutValue = FMath::Clamp(ClampInValue, CameraData->MinZoom, CameraData->MaxZoom);
+
+    CameraPawn->DesiredArmLenght = ClampOutValue;
+}
+
+void APlayerCharacterController::MoveCamera(const FInputActionValue& Value)
+{
+    FVector2D Values = Value.Get<FVector2D>();
+}
+
+void APlayerCharacterController::RotateCamera()
+{
 }
