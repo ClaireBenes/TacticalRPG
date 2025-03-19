@@ -27,6 +27,8 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Data Asset")
     UCameraData* CameraData = nullptr;
 
+    APlayerCharacter* HoveredCharacter = nullptr;
+
 private:
     // **** Functions ****
     UFUNCTION(BlueprintCallable, Category = "Movement")

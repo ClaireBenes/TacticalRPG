@@ -4,6 +4,8 @@
 #include "GameFramework/Actor.h"
 #include "GridManager.generated.h"
 
+class APlayerCharacter;
+
 UCLASS()
 class TACTICALRPG_API AGridManager : public AActor
 {
@@ -49,7 +51,7 @@ private:
     APlayerController* PlayerController;
 
     UPROPERTY()
-    ACharacter* PlayerCharacter;
+    APlayerCharacter* ControlledCharacter;
 
     UPROPERTY()
     UMaterialInstanceDynamic* HoverMaterial;

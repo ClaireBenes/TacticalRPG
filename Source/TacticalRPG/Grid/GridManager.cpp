@@ -4,6 +4,7 @@
 #include "GameFramework/Character.h"
 
 #include "TacticalRPG/Player/PlayerCharacter.h"
+#include "TacticalRPG/Player/PlayerCharacterController.h"
 
 // Sets default values
 AGridManager::AGridManager()
@@ -18,7 +19,7 @@ void AGridManager::BeginPlay()
 	Super::BeginPlay();
 	
 	PlayerController = GetWorld()->GetFirstPlayerController();
-    PlayerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+    //PlayerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
 	GenerateGrid();
 }
 
@@ -43,15 +44,12 @@ void AGridManager::GenerateGrid()
 
 void AGridManager::UpdateGridPosition()
 {
-    if (!IsValid(PlayerCharacter)) return;
-
-    APlayerCharacter* Player = Cast<APlayerCharacter>(PlayerCharacter);
-    if (IsValid(Player) && Player->IsCharacterMoving())
+    if (!IsValid(ControlledCharacter) || ControlledCharacter->IsCharacterMoving())
     {
         return; // Do NOT update grid if character is moving
     }
 
-    FVector PlayerLocation = PlayerCharacter->GetActorLocation();
+    FVector PlayerLocation = ControlledCharacter->GetActorLocation();
     PlayerLocation.X = FMath::RoundToInt(PlayerLocation.X / CellSize) * CellSize;
     PlayerLocation.Y = FMath::RoundToInt(PlayerLocation.Y / CellSize) * CellSize;
     PlayerLocation.Z = 0;
@@ -116,8 +114,7 @@ void AGridManager::UpdateHoveredCell()
 {
     if (!IsValid(PlayerController)) return;
 
-    APlayerCharacter* Player = Cast<APlayerCharacter>(PlayerCharacter);
-    if (IsValid(Player) && Player->IsCharacterMoving())
+    if (IsValid(ControlledCharacter) && ControlledCharacter->IsCharacterMoving())
     {
         return; // Do NOT update hovered cell if character is moving
     }
@@ -140,17 +137,34 @@ void AGridManager::UpdateHoveredCell()
 
             FVector2D CellIndex(CellX, CellY);
 
-
             bool bCanClick = false;
+
+            APlayerCharacterController* PlayerCharacterController = Cast<APlayerCharacterController>(PlayerController);
 
             // Check if cell is in move range OR Touching a character
             if((HitActor != nullptr && Cast<APlayerCharacter>(HitActor)) || IsCellInRange(CellIndex))
             {
                 bCanClick = true;
+          
+                if(IsValid(PlayerCharacterController))
+                {
+                    PlayerCharacterController->HoveredCharacter = Cast<APlayerCharacter>(HitActor);
+                }
+            }
+            else
+            {
+                PlayerCharacterController->HoveredCharacter = nullptr;
             }
 
             // Draw the hover outline (Green = Valid, Red = Invalid)
             DrawDebugBox(GetWorld(), FVector(CellX * CellSize, CellY * CellSize, 5), FVector(CellSize / 2, CellSize / 2, 5), bCanClick ? FColor::Green : FColor::Red, false, -1, 0, 5);
+            
+            DrawDebugLine(GetWorld(), Start, HitLocation, FColor::Green, false, -1.0f);
+            DrawDebugPoint(GetWorld(), HitLocation, 5.0f, FColor::Green, false, -1.0f);
+        }
+        else
+        {
+            DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, -1.0f);
         }
     }
 }
@@ -165,10 +179,10 @@ void AGridManager::HideMovementGrid()
 bool AGridManager::IsCellInRange(FVector2D CellIndex)
 {
     // Get character position
-    if (!IsValid(PlayerCharacter)) return false;
+    if (!IsValid(ControlledCharacter)) return false;
 
     // Get the player's current grid position
-    FVector CurrentLocation = PlayerCharacter->GetActorLocation();
+    FVector CurrentLocation = ControlledCharacter->GetActorLocation();
     int PlayerX = FMath::RoundToInt(CurrentLocation.X / CellSize);
     int PlayerY = FMath::RoundToInt(CurrentLocation.Y / CellSize);
 
@@ -186,7 +200,7 @@ bool AGridManager::IsCellInRange(FVector2D CellIndex)
 
     // If you have obstacles, check if the tile is occupied
     FHitResult HitResult;
-    FVector TileWorldPosition = FVector(CellIndex.X * CellSize, CellIndex.Y * CellSize, PlayerCharacter->GetActorLocation().Z);
+    FVector TileWorldPosition = FVector(CellIndex.X * CellSize, CellIndex.Y * CellSize, ControlledCharacter->GetActorLocation().Z);
 
     if (GetWorld()->LineTraceSingleByChannel(HitResult, TileWorldPosition + FVector(0, 0, 50), TileWorldPosition - FVector(0, 0, 50), ECC_Visibility))
     {
