@@ -31,6 +31,9 @@ public:
     // Check if a given grid cell is valid for movement
     bool IsCellInRange(FVector2D CellIndex);
 
+    UPROPERTY()
+    APlayerCharacter* ControlledCharacter;
+
 private:
     void GenerateGrid();
     void UpdateHoveredCell();
@@ -44,14 +47,8 @@ private:
     UPROPERTY(EditAnywhere, Category = "Grid Settings")
     float CellSize = 100.0f;
 
-    UPROPERTY(EditAnywhere, Category = "Grid Settings")
-    int MaxMoveRange = 3;
-
     UPROPERTY()
     APlayerController* PlayerController;
-
-    UPROPERTY()
-    APlayerCharacter* ControlledCharacter;
 
     UPROPERTY()
     UMaterialInstanceDynamic* HoverMaterial;

@@ -190,7 +190,7 @@ bool AGridManager::IsCellInRange(FVector2D CellIndex)
     int DistanceX = FMath::Abs(PlayerX - CellIndex.X);
     int DistanceY = FMath::Abs(PlayerY - CellIndex.Y);
 
-    bool bIsWithinRange = (DistanceX + DistanceY) <= MaxMoveRange;
+    bool bIsWithinRange = (DistanceX + DistanceY) <= ControlledCharacter->GetMaxMoveRange();
 
     // If the tile is out of range, return false
     if (!bIsWithinRange)

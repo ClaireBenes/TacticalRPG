@@ -57,7 +57,7 @@ void APlayerCharacterController::SetupInputComponent()
 
     if (ClickInputAction)
     {
-        EnhancedInputComponent->BindAction(ClickInputAction, ETriggerEvent::Started, this, &APlayerCharacterController::MoveCharacter);
+        EnhancedInputComponent->BindAction(ClickInputAction, ETriggerEvent::Started, this, &APlayerCharacterController::Click);
     }
 
     if (ZoomInputAction)
@@ -123,6 +123,16 @@ void APlayerCharacterController::MoveCharacter()
 
 void APlayerCharacterController::Click()
 {
+    if (HoveredCharacter != nullptr)
+    {
+        ControlledCharacter = HoveredCharacter;
+        GridManager->ControlledCharacter = ControlledCharacter;
+        GridManager->UpdateGridPosition();
+    }
+    else
+    {
+        MoveCharacter();
+    }
 }
 
 void APlayerCharacterController::Zoom(const FInputActionValue& Value)

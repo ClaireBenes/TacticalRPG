@@ -27,6 +27,7 @@ public:
 	//Getters
 	bool IsCharacterMoving() const { return bIsMoving; }
 	float GetGridSize() const { return GridSize; }
+	int GetMaxMoveRange() const { return MaxMoveRange;  }
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Camera")
