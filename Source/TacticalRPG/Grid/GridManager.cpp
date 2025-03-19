@@ -133,16 +133,24 @@ void AGridManager::UpdateHoveredCell()
         {
             FVector HitLocation = HitResult.Location;
 
+            AActor* HitActor = HitResult.GetActor();
+
             int CellX = FMath::RoundToInt(HitLocation.X / CellSize);
             int CellY = FMath::RoundToInt(HitLocation.Y / CellSize);
 
             FVector2D CellIndex(CellX, CellY);
 
-            // Check if cell is in move range
-            bool bCanMove = IsCellInRange(CellIndex);
+
+            bool bCanClick = false;
+
+            // Check if cell is in move range OR Touching a character
+            if((HitActor != nullptr && Cast<APlayerCharacter>(HitActor)) || IsCellInRange(CellIndex))
+            {
+                bCanClick = true;
+            }
 
             // Draw the hover outline (Green = Valid, Red = Invalid)
-            DrawDebugBox(GetWorld(), FVector(CellX * CellSize, CellY * CellSize, 5), FVector(CellSize / 2, CellSize / 2, 5), bCanMove ? FColor::Green : FColor::Red, false, -1, 0, 5);
+            DrawDebugBox(GetWorld(), FVector(CellX * CellSize, CellY * CellSize, 5), FVector(CellSize / 2, CellSize / 2, 5), bCanClick ? FColor::Green : FColor::Red, false, -1, 0, 5);
         }
     }
 }
@@ -176,7 +184,7 @@ bool AGridManager::IsCellInRange(FVector2D CellIndex)
         return false;
     }
 
-    // OPTIONAL: If you have obstacles, check if the tile is occupied
+    // If you have obstacles, check if the tile is occupied
     FHitResult HitResult;
     FVector TileWorldPosition = FVector(CellIndex.X * CellSize, CellIndex.Y * CellSize, PlayerCharacter->GetActorLocation().Z);
 
