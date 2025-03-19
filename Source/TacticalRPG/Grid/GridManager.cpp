@@ -1,5 +1,6 @@
 #include "TacticalRPG/Grid/GridManager.h"
 
+#include "EngineUtils.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Character.h"
 
@@ -19,8 +20,8 @@ void AGridManager::BeginPlay()
 	Super::BeginPlay();
 	
 	PlayerController = GetWorld()->GetFirstPlayerController();
-    //PlayerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
 	GenerateGrid();
+    InitializeCharacterPositions();
 }
 
 // Called every frame
@@ -49,6 +50,7 @@ void AGridManager::UpdateGridPosition()
         return; // Do NOT update grid if character is moving
     }
 
+    // VISUAL DEBUG
     FVector PlayerLocation = ControlledCharacter->GetActorLocation();
     PlayerLocation.X = FMath::RoundToInt(PlayerLocation.X / CellSize) * CellSize;
     PlayerLocation.Y = FMath::RoundToInt(PlayerLocation.Y / CellSize) * CellSize;
@@ -108,6 +110,24 @@ void AGridManager::UpdateGridPosition()
             DrawDebugLine(GetWorld(), BottomLeft, BottomRight, FColor::Green, true, -1, 0, 3);
         }
     }
+
+    // Store new cell pos of character
+    int CellX = FMath::RoundToInt(ControlledCharacter->GetActorLocation().X / CellSize);
+    int CellY = FMath::RoundToInt(ControlledCharacter->GetActorLocation().Y / CellSize);
+    FVector2D NewCellIndex(CellX, CellY);
+
+    // Remove character from previous cell
+    for (auto It = GridCharacterMap.CreateIterator(); It; ++It)
+    {
+        if (It.Value() == ControlledCharacter)
+        {
+            It.RemoveCurrent();
+            break;
+        }
+    }
+
+    // Add character to new cell
+    GridCharacterMap.Add(NewCellIndex, ControlledCharacter);
 }
 
 void AGridManager::UpdateHoveredCell()
@@ -129,27 +149,37 @@ void AGridManager::UpdateHoveredCell()
         if (GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility))
         {
             FVector HitLocation = HitResult.Location;
-
             AActor* HitActor = HitResult.GetActor();
 
             int CellX = FMath::RoundToInt(HitLocation.X / CellSize);
             int CellY = FMath::RoundToInt(HitLocation.Y / CellSize);
-
             FVector2D CellIndex(CellX, CellY);
 
             bool bCanClick = false;
-
             APlayerCharacterController* PlayerCharacterController = Cast<APlayerCharacterController>(PlayerController);
 
-            // Check if cell is in move range OR Touching a character
-            if((HitActor != nullptr && Cast<APlayerCharacter>(HitActor)) || IsCellInRange(CellIndex))
+            // Direct hit detection (if mouse is over character)
+            if (HitActor != nullptr && Cast<APlayerCharacter>(HitActor))
             {
-                bCanClick = true;
-          
-                if(IsValid(PlayerCharacterController))
+                if (IsValid(PlayerCharacterController))
                 {
                     PlayerCharacterController->HoveredCharacter = Cast<APlayerCharacter>(HitActor);
                 }
+
+                bCanClick = true;
+            }
+            else if (GridCharacterMap.Contains(CellIndex)) // Check if a character is standing on the cell
+            {
+                if (IsValid(PlayerCharacterController))
+                {
+                    PlayerCharacterController->HoveredCharacter = GridCharacterMap[CellIndex];
+                }    
+                bCanClick = true;
+            }
+            else if (IsCellInRange(CellIndex))
+            {
+                bCanClick = true;
+                PlayerCharacterController->HoveredCharacter = nullptr;
             }
             else
             {
@@ -165,6 +195,24 @@ void AGridManager::UpdateHoveredCell()
         else
         {
             DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, -1.0f);
+        }
+    }
+}
+
+void AGridManager::InitializeCharacterPositions()
+{
+    GridCharacterMap.Empty(); // Clear any previous data
+
+    for (TActorIterator<APlayerCharacter> It(GetWorld()); It; ++It)
+    {
+        APlayerCharacter* Character = *It;
+        if (IsValid(Character))
+        {
+            int CellX = FMath::RoundToInt(Character->GetActorLocation().X / CellSize);
+            int CellY = FMath::RoundToInt(Character->GetActorLocation().Y / CellSize);
+            FVector2D CellIndex(CellX, CellY);
+
+            GridCharacterMap.Add(CellIndex, Character);
         }
     }
 }

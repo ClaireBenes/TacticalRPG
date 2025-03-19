@@ -37,6 +37,7 @@ public:
 private:
     void GenerateGrid();
     void UpdateHoveredCell();
+    void InitializeCharacterPositions();
 
     UPROPERTY(EditAnywhere, Category = "Grid Settings")
     int GridSizeX = 10;
@@ -57,5 +58,5 @@ private:
     AActor* HoveredCell;
 
     TSet<FVector2D> ValidCells; // Stores all valid movement cells
-
+    TMap<FVector2D, APlayerCharacter*> GridCharacterMap; //Store all cells where character are standing on
 };
