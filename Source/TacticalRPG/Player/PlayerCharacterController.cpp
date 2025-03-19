@@ -14,6 +14,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputAction.h"
 
+#include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "EngineUtils.h"
 
@@ -126,13 +127,31 @@ void APlayerCharacterController::Click()
     if (HoveredCharacter != nullptr)
     {
         ControlledCharacter = HoveredCharacter;
-        GridManager->ControlledCharacter = ControlledCharacter;
-        GridManager->UpdateGridPosition();
+
+        //Move Camera to character
+        CameraPawn->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+
+        FLatentActionInfo LatentInfo;
+        LatentInfo.CallbackTarget = this;
+        LatentInfo.ExecutionFunction = FName("CameraAttachToCharacter");
+        LatentInfo.Linkage = 0;
+
+        UKismetSystemLibrary::MoveComponentTo(CameraPawn->GetRootComponent(), ControlledCharacter->GetActorLocation(), FRotator::ZeroRotator, false, true,
+            CameraData->MoveToCharacterSpeed, false, EMoveComponentAction::Type::Move, LatentInfo);
     }
     else
     {
         MoveCharacter();
     }
+}
+
+
+void APlayerCharacterController::CameraAttachToCharacter()
+{
+    CameraPawn->AttachToActor(ControlledCharacter,FAttachmentTransformRules::KeepWorldTransform);
+
+    GridManager->ControlledCharacter = ControlledCharacter;
+    GridManager->UpdateGridPosition();
 }
 
 void APlayerCharacterController::Zoom(const FInputActionValue& Value)

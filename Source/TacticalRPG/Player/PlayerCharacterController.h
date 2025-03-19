@@ -29,6 +29,9 @@ public:
 
     APlayerCharacter* HoveredCharacter = nullptr;
 
+    UFUNCTION(BlueprintCallable, Category = "Camera")
+    void CameraAttachToCharacter();
+
 private:
     // **** Functions ****
     UFUNCTION(BlueprintCallable, Category = "Movement")
