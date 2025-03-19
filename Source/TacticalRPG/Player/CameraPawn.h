@@ -4,6 +4,13 @@
 #include "GameFramework/Pawn.h"
 #include "CameraPawn.generated.h"
 
+class UCameraData;
+class UArrowComponent;
+class UCameraComponent;
+class USpringArmComponent;
+class UFloatingPawnMovement;
+class UStaticMeshComponent;
+
 UCLASS()
 class TACTICALRPG_API ACameraPawn : public APawn
 {
@@ -26,24 +33,24 @@ public:
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Data Asset")
-	class UCameraData* CameraData = nullptr;
+	UCameraData* CameraData = nullptr;
 
 	UPROPERTY(VisibleAnywhere, Category = "Camera")
-	class UArrowComponent* ForwardArrow = nullptr;
+	UArrowComponent* ForwardArrow = nullptr;
 
 	UPROPERTY(VisibleAnywhere, Category = "Camera")
-	class UCameraComponent* TopDownCamera = nullptr;
+	UCameraComponent* TopDownCamera = nullptr;
 
 	UPROPERTY(VisibleAnywhere, Category = "Camera|SpringArm")
-	class USpringArmComponent* SpringArm = nullptr;
+	USpringArmComponent* SpringArm = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera|SpringArm")
 	float DesiredArmLenght = 100.0f;
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Movement")
-	class UFloatingPawnMovement* FloatingPawnMovement = nullptr;
+	UFloatingPawnMovement* FloatingPawnMovement = nullptr;
 
 	UPROPERTY(VisibleAnywhere, Category = "Root")
-	class UStaticMeshComponent* NewRootComponent = nullptr;	
+	UStaticMeshComponent* NewRootComponent = nullptr;	
 };

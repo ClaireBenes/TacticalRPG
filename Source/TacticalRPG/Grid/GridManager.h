@@ -1,5 +1,7 @@
 #pragma once
 
+#include "TacticalRPG/DataAsset/GridData.h"
+
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "GridManager.generated.h"
@@ -29,30 +31,28 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Grid")
     void UpdateGridPosition();
 
+    // Check if a given grid cell is valid for movement
+    bool IsCellInRange(FVector2D CellIndex);
+
+    //Getters
+    float GetGridSize() const { return GridData->CellSize; }
+    TSet<FVector2D> GetValidCells();
+
+
 public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Data Asset")
     UCameraData* CameraData = nullptr;
 
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Data Asset")
+    UGridData* GridData = nullptr;
+
     UPROPERTY()
     APlayerCharacter* ControlledCharacter = nullptr;
-
-    // Check if a given grid cell is valid for movement
-    bool IsCellInRange(FVector2D CellIndex);
-    TSet<FVector2D> GetValidedCell();
 
 private:
     void GenerateGrid();
     void UpdateHoveredCell();
     void InitializeCharacterPositions();
-
-    UPROPERTY(EditAnywhere, Category = "Grid Settings")
-    int GridSizeX = 10;
-
-    UPROPERTY(EditAnywhere, Category = "Grid Settings")
-    int GridSizeY = 10;
-
-    UPROPERTY(EditAnywhere, Category = "Grid Settings")
-    float CellSize = 100.0f;
 
     UPROPERTY()
     APlayerController* PlayerController;

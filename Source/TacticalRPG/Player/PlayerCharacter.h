@@ -4,6 +4,10 @@
 #include "GameFramework/Character.h"
 #include "PlayerCharacter.generated.h"
 
+class USpringArmComponent;
+class UCameraComponent;
+class AGridManager;
+
 UCLASS()
 class TACTICALRPG_API APlayerCharacter : public ACharacter
 {
@@ -26,19 +30,14 @@ public:
 
 	//Getters
 	bool IsCharacterMoving() const { return bIsMoving; }
-	float GetGridSize() const { return GridSize; }
 	int GetMaxMoveRange() const { return MaxMoveRange;  }
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Camera")
-	class USpringArmComponent* SpringArm;
+	USpringArmComponent* SpringArm;
 
 	UPROPERTY(VisibleAnywhere, Category = "Camera")
-	class UCameraComponent* TopDownCamera;
-
-	// Grid square size
-	UPROPERTY(EditAnywhere, Category = "Grid")
-	float GridSize = 100.0f; 
+	UCameraComponent* TopDownCamera;
 
 	// Max number of squares per turn
 	UPROPERTY(EditAnywhere, Category = "Grid")
@@ -48,7 +47,7 @@ private:
 	float MoveSpeed = 300.0f; // Units per second
 
 	FVector TargetLocation;
-	bool bIsMoving = false;
+	AGridManager* GridManager;
 
-	class AGridManager* GridManager;
+	bool bIsMoving = false;
 };

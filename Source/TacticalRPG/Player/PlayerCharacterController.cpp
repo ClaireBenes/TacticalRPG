@@ -100,14 +100,14 @@ void APlayerCharacterController::MoveCharacter()
         {
             FVector ClickedLocation = HitResult.Location;
 
-            int ClickedCellX = FMath::RoundToInt(ClickedLocation.X / ControlledCharacter->GetGridSize());
-            int ClickedCellY = FMath::RoundToInt(ClickedLocation.Y / ControlledCharacter->GetGridSize());
+            int ClickedCellX = FMath::RoundToInt(ClickedLocation.X / GridManager->GetGridSize());
+            int ClickedCellY = FMath::RoundToInt(ClickedLocation.Y / GridManager->GetGridSize());
             FVector2D ClickedCell(ClickedCellX, ClickedCellY);
 
-            if (GridManager->GetValidedCell().Contains(ClickedCell))
+            if (GridManager->GetValidCells().Contains(ClickedCell))
             {
-                FVector NextTargetLocation = FVector(ClickedCellX * ControlledCharacter->GetGridSize(),
-                    ClickedCellY * ControlledCharacter->GetGridSize(),
+                FVector NextTargetLocation = FVector(ClickedCellX * GridManager->GetGridSize(),
+                    ClickedCellY * GridManager->GetGridSize(),
                     ControlledCharacter->GetActorLocation().Z);
 
                 GridManager->HideMovementGrid();

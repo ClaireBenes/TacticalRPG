@@ -7,6 +7,7 @@
 #include "TacticalRPG/Player/PlayerCharacter.h"
 #include "TacticalRPG/Player/PlayerCharacterController.h"
 #include "TacticalRPG/DataAsset/CameraData.h"
+#include "TacticalRPG/DataAsset/GridData.h"
 
 // Sets default values
 AGridManager::AGridManager()
@@ -35,11 +36,11 @@ void AGridManager::Tick(float DeltaTime)
 
 void AGridManager::GenerateGrid()
 {
-	for (int X = 0; X < GridSizeX; X++)
+	for (int X = 0; X < GridData->GridSizeX; X++)
 	{
-		for (int Y = 0; Y < GridSizeY; Y++)
+		for (int Y = 0; Y < GridData->GridSizeY; Y++)
 		{
-			FVector CellLocation = FVector(X * CellSize, Y * CellSize, 0);
+			FVector CellLocation = FVector(X * GridData->CellSize, Y * GridData->CellSize, 0);
 		}
 	}
 }
@@ -53,8 +54,8 @@ void AGridManager::UpdateGridPosition()
 
     // VISUAL DEBUG
     FVector PlayerLocation = ControlledCharacter->GetActorLocation();
-    PlayerLocation.X = FMath::RoundToInt(PlayerLocation.X / CellSize) * CellSize;
-    PlayerLocation.Y = FMath::RoundToInt(PlayerLocation.Y / CellSize) * CellSize;
+    PlayerLocation.X = FMath::RoundToInt(PlayerLocation.X / GridData->CellSize) * GridData->CellSize;
+    PlayerLocation.Y = FMath::RoundToInt(PlayerLocation.Y / GridData->CellSize) * GridData->CellSize;
     PlayerLocation.Z = 0;
 
     // Clear previous debug grid
@@ -62,12 +63,12 @@ void AGridManager::UpdateGridPosition()
     ValidCells.Empty();
 
     // Draw the grid centered around the player
-    for (int X = -GridSizeX / 2; X <= GridSizeX / 2; X++)
+    for (int X = -GridData->GridSizeX / 2; X <= GridData->GridSizeX / 2; X++)
     {
-        for (int Y = -GridSizeY / 2; Y <= GridSizeY / 2; Y++)
+        for (int Y = -GridData->GridSizeY / 2; Y <= GridData->GridSizeY / 2; Y++)
         {
-            FVector CellLocation = PlayerLocation + FVector(X * CellSize, Y * CellSize, 0);
-            FVector2D CellIndex = FVector2D(X + (PlayerLocation.X / CellSize), Y + (PlayerLocation.Y / CellSize));
+            FVector CellLocation = PlayerLocation + FVector(X * GridData->CellSize, Y * GridData->CellSize, 0);
+            FVector2D CellIndex = FVector2D(X + (PlayerLocation.X / GridData->CellSize), Y + (PlayerLocation.Y / GridData->CellSize));
 
             // Create an invisible actor for tiles that can be moved onto
             if (IsCellInRange(CellIndex))
@@ -80,11 +81,11 @@ void AGridManager::UpdateGridPosition()
     // Identify Edge Cells
     for (FVector2D Cell : ValidCells)
     {
-        FVector CellWorldLocation = FVector(Cell.X * CellSize, Cell.Y * CellSize, 5);
-        FVector TopLeft = CellWorldLocation + FVector(-CellSize / 2, CellSize / 2, 0);
-        FVector TopRight = CellWorldLocation + FVector(CellSize / 2, CellSize / 2, 0);
-        FVector BottomLeft = CellWorldLocation + FVector(-CellSize / 2, -CellSize / 2, 0);
-        FVector BottomRight = CellWorldLocation + FVector(CellSize / 2, -CellSize / 2, 0);
+        FVector CellWorldLocation = FVector(Cell.X * GridData->CellSize, Cell.Y * GridData->CellSize, 5);
+        FVector TopLeft = CellWorldLocation + FVector(-GridData->CellSize / 2, GridData->CellSize / 2, 0);
+        FVector TopRight = CellWorldLocation + FVector(GridData->CellSize / 2, GridData->CellSize / 2, 0);
+        FVector BottomLeft = CellWorldLocation + FVector(-GridData->CellSize / 2, -GridData->CellSize / 2, 0);
+        FVector BottomRight = CellWorldLocation + FVector(GridData->CellSize / 2, -GridData->CellSize / 2, 0);
 
         // Check adjacent tiles
         FVector2D Neighbors[4] = {
@@ -113,8 +114,8 @@ void AGridManager::UpdateGridPosition()
     }
 
     // Store new cell pos of character
-    int CellX = FMath::RoundToInt(ControlledCharacter->GetActorLocation().X / CellSize);
-    int CellY = FMath::RoundToInt(ControlledCharacter->GetActorLocation().Y / CellSize);
+    int CellX = FMath::RoundToInt(ControlledCharacter->GetActorLocation().X / GridData->CellSize);
+    int CellY = FMath::RoundToInt(ControlledCharacter->GetActorLocation().Y / GridData->CellSize);
     FVector2D NewCellIndex(CellX, CellY);
 
     // Remove character from previous cell
@@ -152,8 +153,8 @@ void AGridManager::UpdateHoveredCell()
             FVector HitLocation = HitResult.Location;
             AActor* HitActor = HitResult.GetActor();
 
-            int CellX = FMath::RoundToInt(HitLocation.X / CellSize);
-            int CellY = FMath::RoundToInt(HitLocation.Y / CellSize);
+            int CellX = FMath::RoundToInt(HitLocation.X / GridData->CellSize);
+            int CellY = FMath::RoundToInt(HitLocation.Y / GridData->CellSize);
             FVector2D CellIndex(CellX, CellY);
 
             bool bCanClick = false;
@@ -188,7 +189,7 @@ void AGridManager::UpdateHoveredCell()
             }
 
             // Draw the hover outline (Green = Valid, Red = Invalid)
-            DrawDebugBox(GetWorld(), FVector(CellX * CellSize, CellY * CellSize, 5), FVector(CellSize / 2, CellSize / 2, 5),
+            DrawDebugBox(GetWorld(), FVector(CellX * GridData->CellSize, CellY * GridData->CellSize, 5), FVector(GridData->CellSize / 2, GridData->CellSize / 2, 5),
                 bCanClick ? FColor::Green : FColor::Red, false, -1, 0, 5);
 
             DrawDebugLine(GetWorld(), Start, HitLocation, FColor::Green, false, -1.0f);
@@ -210,8 +211,8 @@ void AGridManager::InitializeCharacterPositions()
         APlayerCharacter* Character = *It;
         if (IsValid(Character))
         {
-            int CellX = FMath::RoundToInt(Character->GetActorLocation().X / CellSize);
-            int CellY = FMath::RoundToInt(Character->GetActorLocation().Y / CellSize);
+            int CellX = FMath::RoundToInt(Character->GetActorLocation().X / GridData->CellSize);
+            int CellY = FMath::RoundToInt(Character->GetActorLocation().Y / GridData->CellSize);
             FVector2D CellIndex(CellX, CellY);
 
             GridCharacterMap.Add(CellIndex, Character);
@@ -233,8 +234,8 @@ bool AGridManager::IsCellInRange(FVector2D CellIndex)
 
     // Get the player's current grid position
     FVector CurrentLocation = ControlledCharacter->GetActorLocation();
-    int PlayerX = FMath::RoundToInt(CurrentLocation.X / CellSize);
-    int PlayerY = FMath::RoundToInt(CurrentLocation.Y / CellSize);
+    int PlayerX = FMath::RoundToInt(CurrentLocation.X / GridData->CellSize);
+    int PlayerY = FMath::RoundToInt(CurrentLocation.Y / GridData->CellSize);
 
     // Calculate Manhattan distance
     int DistanceX = FMath::Abs(PlayerX - CellIndex.X);
@@ -250,7 +251,7 @@ bool AGridManager::IsCellInRange(FVector2D CellIndex)
 
     // If you have obstacles, check if the tile is occupied
     FHitResult HitResult;
-    FVector TileWorldPosition = FVector(CellIndex.X * CellSize, CellIndex.Y * CellSize, ControlledCharacter->GetActorLocation().Z);
+    FVector TileWorldPosition = FVector(CellIndex.X * GridData->CellSize, CellIndex.Y * GridData->CellSize, ControlledCharacter->GetActorLocation().Z);
 
     if (GetWorld()->LineTraceSingleByChannel(HitResult, TileWorldPosition + FVector(0, 0, 50), TileWorldPosition - FVector(0, 0, 50), ECC_Visibility))
     {
@@ -264,7 +265,7 @@ bool AGridManager::IsCellInRange(FVector2D CellIndex)
     return true; // Otherwise, the cell is valid for movement
 }
 
-TSet<FVector2D> AGridManager::GetValidedCell()
+TSet<FVector2D> AGridManager::GetValidCells()
 {
     return ValidCells;
 }
