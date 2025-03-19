@@ -5,6 +5,7 @@
 #include "GridManager.generated.h"
 
 class APlayerCharacter;
+class UCameraData;
 
 UCLASS()
 class TACTICALRPG_API AGridManager : public AActor
@@ -28,11 +29,16 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Grid")
     void UpdateGridPosition();
 
-    // Check if a given grid cell is valid for movement
-    bool IsCellInRange(FVector2D CellIndex);
+public:
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Data Asset")
+    UCameraData* CameraData = nullptr;
 
     UPROPERTY()
-    APlayerCharacter* ControlledCharacter;
+    APlayerCharacter* ControlledCharacter = nullptr;
+
+    // Check if a given grid cell is valid for movement
+    bool IsCellInRange(FVector2D CellIndex);
+    TSet<FVector2D> GetValidedCell();
 
 private:
     void GenerateGrid();

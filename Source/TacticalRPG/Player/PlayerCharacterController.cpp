@@ -93,7 +93,7 @@ void APlayerCharacterController::MoveCharacter()
     if (DeprojectMousePositionToWorld(WorldLocation, WorldDirection))
     {
         FVector Start = WorldLocation;
-        FVector End = Start + (WorldDirection * 10000);
+        FVector End = Start + (WorldDirection * CameraData->RaycastLenght);
 
         FHitResult HitResult;
         if (GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility))
@@ -104,7 +104,7 @@ void APlayerCharacterController::MoveCharacter()
             int ClickedCellY = FMath::RoundToInt(ClickedLocation.Y / ControlledCharacter->GetGridSize());
             FVector2D ClickedCell(ClickedCellX, ClickedCellY);
 
-            if (GridManager->IsCellInRange(ClickedCell))
+            if (GridManager->GetValidedCell().Contains(ClickedCell))
             {
                 FVector NextTargetLocation = FVector(ClickedCellX * ControlledCharacter->GetGridSize(),
                     ClickedCellY * ControlledCharacter->GetGridSize(),

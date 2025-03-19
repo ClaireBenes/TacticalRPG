@@ -6,6 +6,7 @@
 
 #include "TacticalRPG/Player/PlayerCharacter.h"
 #include "TacticalRPG/Player/PlayerCharacterController.h"
+#include "TacticalRPG/DataAsset/CameraData.h"
 
 // Sets default values
 AGridManager::AGridManager()
@@ -143,7 +144,7 @@ void AGridManager::UpdateHoveredCell()
     if (PlayerController->DeprojectMousePositionToWorld(WorldLocation, WorldDirection))
     {
         FVector Start = WorldLocation;
-        FVector End = Start + (WorldDirection * 10000);
+        FVector End = Start + (WorldDirection * CameraData->RaycastLenght);
 
         FHitResult HitResult;
         if (GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility))
@@ -173,10 +174,10 @@ void AGridManager::UpdateHoveredCell()
                 if (IsValid(PlayerCharacterController))
                 {
                     PlayerCharacterController->HoveredCharacter = GridCharacterMap[CellIndex];
-                }    
+                }
                 bCanClick = true;
             }
-            else if (IsCellInRange(CellIndex))
+            else if (ValidCells.Contains(CellIndex))  // Only allow movement if in ValidCells
             {
                 bCanClick = true;
                 PlayerCharacterController->HoveredCharacter = nullptr;
@@ -187,8 +188,9 @@ void AGridManager::UpdateHoveredCell()
             }
 
             // Draw the hover outline (Green = Valid, Red = Invalid)
-            DrawDebugBox(GetWorld(), FVector(CellX * CellSize, CellY * CellSize, 5), FVector(CellSize / 2, CellSize / 2, 5), bCanClick ? FColor::Green : FColor::Red, false, -1, 0, 5);
-            
+            DrawDebugBox(GetWorld(), FVector(CellX * CellSize, CellY * CellSize, 5), FVector(CellSize / 2, CellSize / 2, 5),
+                bCanClick ? FColor::Green : FColor::Red, false, -1, 0, 5);
+
             DrawDebugLine(GetWorld(), Start, HitLocation, FColor::Green, false, -1.0f);
             DrawDebugPoint(GetWorld(), HitLocation, 5.0f, FColor::Green, false, -1.0f);
         }
@@ -260,5 +262,10 @@ bool AGridManager::IsCellInRange(FVector2D CellIndex)
     }
 
     return true; // Otherwise, the cell is valid for movement
+}
+
+TSet<FVector2D> AGridManager::GetValidedCell()
+{
+    return ValidCells;
 }
 
