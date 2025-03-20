@@ -159,33 +159,25 @@ void AGridManager::UpdateHoveredCell()
 
             bool bCanClick = false;
             APlayerCharacterController* PlayerCharacterController = Cast<APlayerCharacterController>(PlayerController);
+            PlayerCharacterController->HoveredCharacter = nullptr;
 
             // Direct hit detection (if mouse is over character)
-            if (HitActor != nullptr && Cast<APlayerCharacter>(HitActor))
+            if (IsValid(PlayerCharacterController))
             {
-                if (IsValid(PlayerCharacterController))
+                if (HitActor != nullptr && Cast<APlayerCharacter>(HitActor))
                 {
                     PlayerCharacterController->HoveredCharacter = Cast<APlayerCharacter>(HitActor);
+                    bCanClick = true;
                 }
-
-                bCanClick = true;
-            }
-            else if (GridCharacterMap.Contains(CellIndex)) // Check if a character is standing on the cell
-            {
-                if (IsValid(PlayerCharacterController))
+                else if (GridCharacterMap.Contains(CellIndex))
                 {
                     PlayerCharacterController->HoveredCharacter = GridCharacterMap[CellIndex];
+                    bCanClick = true;
                 }
-                bCanClick = true;
-            }
-            else if (ValidCells.Contains(CellIndex))  // Only allow movement if in ValidCells
-            {
-                bCanClick = true;
-                PlayerCharacterController->HoveredCharacter = nullptr;
-            }
-            else
-            {
-                PlayerCharacterController->HoveredCharacter = nullptr;
+                else if (ValidCells.Contains(CellIndex))
+                {
+                    bCanClick = true;
+                }
             }
 
             // Draw the hover outline (Green = Valid, Red = Invalid)
@@ -253,10 +245,12 @@ bool AGridManager::IsCellInRange(FVector2D CellIndex)
     FHitResult HitResult;
     FVector TileWorldPosition = FVector(CellIndex.X * GridData->CellSize, CellIndex.Y * GridData->CellSize, ControlledCharacter->GetActorLocation().Z);
 
+    //FVector Start = WorldLocation;
+    //FVector End = Start + (WorldDirection * CameraData->RaycastLenght);
     if (GetWorld()->LineTraceSingleByChannel(HitResult, TileWorldPosition + FVector(0, 0, 50), TileWorldPosition - FVector(0, 0, 50), ECC_Visibility))
     {
         AActor* HitActor = HitResult.GetActor();
-        if (HitActor != nullptr && HitActor->ActorHasTag("BlockedTile"))
+        if (HitActor != nullptr && HitActor->ActorHasTag("Obstacle"))
         {
             return false; // Tile is blocked
         }
