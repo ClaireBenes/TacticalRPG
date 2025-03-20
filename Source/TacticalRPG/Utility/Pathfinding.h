@@ -4,7 +4,7 @@
 #include "GameFramework/Actor.h"
 #include "Pathfinding.generated.h"
 
-USTRUCT(BlueprintType)
+USTRUCT()
 struct FPathNode
 {
 	GENERATED_BODY()

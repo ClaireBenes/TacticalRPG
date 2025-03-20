@@ -36,6 +36,12 @@ void AGridManager::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
     UpdateGridPosition();
 	UpdateHoveredCell();
+ 
+    //for (FVector2D Cell : ObstacleCells)
+    //{
+    //    FVector WorldPos = FVector(Cell.X * GridData->CellSize, Cell.Y * GridData->CellSize, 50); // Adjust Z if needed
+    //    DrawDebugBox(GetWorld(), WorldPos, FVector(GridData->CellSize / 2, GridData->CellSize / 2, 50), FColor::Red, false, 5.0f);
+    //}
 }
 
 void AGridManager::GenerateGrid()
@@ -60,10 +66,24 @@ void AGridManager::CacheObstacles()
     {
         if (!Obstacle) continue;
 
-        FVector WorldLocation = Obstacle->GetActorLocation();
-        FVector2D GridCoord = ConvertWorldToGrid(WorldLocation);
+        // Get the full bounds of the obstacle
+        FBox Bounds = Obstacle->GetComponentsBoundingBox();
+        FVector Min = Bounds.Min;
+        FVector Max = Bounds.Max;
 
-        ObstacleCells.Add(GridCoord);
+        // Convert the bounding box to grid coordinates
+        FVector2D MinGridCoord = ConvertWorldToGrid(Min);
+        FVector2D MaxGridCoord = ConvertWorldToGrid(Max);
+
+        // Loop over all grid cells covered by the obstacle
+        for (int x = MinGridCoord.X; x <= MaxGridCoord.X; x++)
+        {
+            for (int y = MinGridCoord.Y; y <= MaxGridCoord.Y; y++)
+            {
+                FVector2D GridCoord(x, y);
+                ObstacleCells.Add(GridCoord); // Mark cell as blocked
+            }
+        }
     }
 
     UE_LOG(LogTemp, Warning, TEXT("Cached %d obstacle cells"), ObstacleCells.Num());
@@ -154,6 +174,7 @@ void AGridManager::UpdateGridPosition()
 
     // Add character to new cell
     GridCharacterMap.Add(NewCellIndex, ControlledCharacter);
+    CacheObstacles();
 }
 
 void AGridManager::UpdateHoveredCell()
