@@ -43,16 +43,19 @@ void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-    if (bIsMoving)
+    if (bIsMoving && Path.Num() > 0)
     {
         FVector CurrentLocation = GetActorLocation();
 
         // Move smoothly using interpolation
-        FVector NewLocation = FMath::VInterpConstantTo(CurrentLocation, TargetLocation, DeltaTime, MoveSpeed);
-        SetActorLocation(NewLocation);
+        FVector NextLocation = FVector(Path[0].X * GridManager->GetGridSize(), Path[0].Y * GridManager->GetGridSize(), GetActorLocation().Z);
+        //FVector NewLocation = FMath::VInterpConstantTo(CurrentLocation, TargetLocation, DeltaTime, MoveSpeed);
+        //SetActorLocation(NewLocation);
+
+        SetActorLocation(FMath::VInterpConstantTo(CurrentLocation, NextLocation, DeltaTime, MoveSpeed));
 
         // Rotate Character to Face the Target
-        FVector MoveDirection = (TargetLocation - CurrentLocation).GetSafeNormal();
+        FVector MoveDirection = (NextLocation - CurrentLocation).GetSafeNormal();
         if (!MoveDirection.IsNearlyZero()) // Ensure we have a valid direction
         {
             FRotator TargetRotation = MoveDirection.Rotation();
@@ -65,13 +68,17 @@ void APlayerCharacter::Tick(float DeltaTime)
         }
 
         // Check if the character has reached the destination
-        if (FVector::Dist(CurrentLocation, TargetLocation) < 5.0f)
+        if (FVector::Dist(CurrentLocation, NextLocation) < 5.0f)
         {
-            SetActorLocation(TargetLocation); // Snap to final position
-            bIsMoving = false; // Stop moving
+            Path.RemoveAt(0);
+            if (Path.Num() == 0)
+            {
+                SetActorLocation(NextLocation); // Snap to final position
+                bIsMoving = false; // Stop moving
 
-            // Show movement grid again
-            GridManager->UpdateGridPosition();
+                // Show movement grid again
+                GridManager->UpdateGridPosition();
+            }        
         }
     }
 }
@@ -79,7 +86,13 @@ void APlayerCharacter::Tick(float DeltaTime)
 void APlayerCharacter::MoveToGridCell(FVector NewTargetLocation)
 {
     TargetLocation = NewTargetLocation; // Store the new movement target
-    bIsMoving = true; // Enable movement logic
+    //bIsMoving = true; // Enable movement logic
+}
+
+void APlayerCharacter::SetPath(TArray<FVector2D> NewPath)
+{
+    Path = NewPath;
+    bIsMoving = true;
 }
 
 

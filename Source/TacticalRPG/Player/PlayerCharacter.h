@@ -27,6 +27,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	void MoveToGridCell(FVector NewTargetLocation);
+	void SetPath(TArray<FVector2D> NewPath);
 
 	//Getters
 	bool IsCharacterMoving() const { return bIsMoving; }
@@ -46,8 +47,9 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Movement")
 	float MoveSpeed = 300.0f; // Units per second
 
+	AGridManager* GridManager = nullptr;
+	TArray<FVector2D> Path;
 	FVector TargetLocation;
-	AGridManager* GridManager;
 
 	bool bIsMoving = false;
 };

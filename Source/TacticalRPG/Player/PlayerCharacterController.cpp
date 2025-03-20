@@ -112,7 +112,9 @@ void APlayerCharacterController::MoveCharacter()
 
                 GridManager->HideMovementGrid();
 
-                ControlledCharacter->MoveToGridCell(NextTargetLocation);
+                FVector2D StartCell = GridManager->ConvertWorldToGrid(ControlledCharacter->GetActorLocation());
+                GridManager->FindPathToCell(StartCell, ClickedCell);
+                //ControlledCharacter->MoveToGridCell(NextTargetLocation);
             }
             else
             {

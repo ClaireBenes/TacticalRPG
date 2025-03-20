@@ -8,6 +8,7 @@
 
 class APlayerCharacter;
 class UCameraData;
+class APathfinding;
 
 UCLASS()
 class TACTICALRPG_API AGridManager : public AActor
@@ -31,7 +32,13 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Grid")
     void UpdateGridPosition();
 
+    UFUNCTION(BlueprintCallable, Category = "Grid")
+    FVector2D ConvertWorldToGrid(FVector WorldLocation) const;
+    UFUNCTION(BlueprintCallable, Category = "Grid")
+    FVector ConvertGridToWorld(FVector2D GridCoord) const;
+
     // Check if a given grid cell is valid for movement
+    void FindPathToCell(FVector2D Start, FVector2D Goal);
     bool IsCellInRange(FVector2D CellIndex);
 
     //Getters
@@ -54,15 +61,20 @@ private:
     void UpdateHoveredCell();
     void InitializeCharacterPositions();
 
-    UPROPERTY()
-    APlayerController* PlayerController;
+    void CacheObstacles(); // Detect obstacles at game start
 
     UPROPERTY()
-    UMaterialInstanceDynamic* HoverMaterial;
+    APlayerController* PlayerController = nullptr;
 
     UPROPERTY()
-    AActor* HoveredCell;
+    UMaterialInstanceDynamic* HoverMaterial = nullptr;
 
+    UPROPERTY()
+    AActor* HoveredCell = nullptr;
+
+    APathfinding* Pathfinding = nullptr;
+
+    TSet<FVector2D> ObstacleCells; // Stores obstacles in grid coordinates
     TSet<FVector2D> ValidCells; // Stores all valid movement cells
     TMap<FVector2D, APlayerCharacter*> GridCharacterMap; //Store all cells where character are standing on
 };

@@ -4,6 +4,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Character.h"
 
+#include "TacticalRPG/Utility/Pathfinding.h"
+
 #include "TacticalRPG/Player/PlayerCharacter.h"
 #include "TacticalRPG/Player/PlayerCharacterController.h"
 #include "TacticalRPG/DataAsset/CameraData.h"
@@ -24,6 +26,8 @@ void AGridManager::BeginPlay()
 	PlayerController = GetWorld()->GetFirstPlayerController();
 	GenerateGrid();
     InitializeCharacterPositions();
+
+    CacheObstacles(); // Detect obstacles at game start
 }
 
 // Called every frame
@@ -43,6 +47,26 @@ void AGridManager::GenerateGrid()
 			FVector CellLocation = FVector(X * GridData->CellSize, Y * GridData->CellSize, 0);
 		}
 	}
+}
+
+void AGridManager::CacheObstacles()
+{
+    TArray<AActor*> ObstacleActors;
+    UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("Obstacle"), ObstacleActors);
+
+    ObstacleCells.Empty();
+
+    for (AActor* Obstacle : ObstacleActors)
+    {
+        if (!Obstacle) continue;
+
+        FVector WorldLocation = Obstacle->GetActorLocation();
+        FVector2D GridCoord = ConvertWorldToGrid(WorldLocation);
+
+        ObstacleCells.Add(GridCoord);
+    }
+
+    UE_LOG(LogTemp, Warning, TEXT("Cached %d obstacle cells"), ObstacleCells.Num());
 }
 
 void AGridManager::UpdateGridPosition()
@@ -219,6 +243,21 @@ void AGridManager::HideMovementGrid()
     ValidCells.Empty();
 }
 
+void AGridManager::FindPathToCell(FVector2D Start, FVector2D Goal)
+{
+    if (!Pathfinding)
+    {
+        Pathfinding = GetWorld()->SpawnActor<APathfinding>();
+    }
+
+    TArray<FVector2D> Path = Pathfinding->FindPath(Start, Goal, ObstacleCells, GridData->GridSizeX, GridData->GridSizeY);
+
+    if (Path.Num() > 0)
+    {
+        ControlledCharacter->SetPath(Path);
+    }
+}
+
 bool AGridManager::IsCellInRange(FVector2D CellIndex)
 {
     // Get character position
@@ -262,5 +301,21 @@ bool AGridManager::IsCellInRange(FVector2D CellIndex)
 TSet<FVector2D> AGridManager::GetValidCells()
 {
     return ValidCells;
+}
+
+FVector2D AGridManager::ConvertWorldToGrid(FVector WorldLocation) const
+{
+    int CellX = FMath::RoundToInt(WorldLocation.X / GridData->CellSize);
+    int CellY = FMath::RoundToInt(WorldLocation.Y / GridData->CellSize);
+
+    return FVector2D(CellX, CellY);
+}
+
+FVector AGridManager::ConvertGridToWorld(FVector2D GridCoord) const
+{
+    float WorldX = GridCoord.X * GridData->CellSize;
+    float WorldY = GridCoord.Y * GridData->CellSize;
+
+    return FVector(WorldX, WorldY, 0); // Z = 0 assuming flat terrain
 }
 
