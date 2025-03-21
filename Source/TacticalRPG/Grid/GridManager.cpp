@@ -37,11 +37,11 @@ void AGridManager::Tick(float DeltaTime)
     UpdateGridPosition();
 	UpdateHoveredCell();
  
-    //for (FVector2D Cell : ObstacleCells)
-    //{
-    //    FVector WorldPos = FVector(Cell.X * GridData->CellSize, Cell.Y * GridData->CellSize, 50); // Adjust Z if needed
-    //    DrawDebugBox(GetWorld(), WorldPos, FVector(GridData->CellSize / 2, GridData->CellSize / 2, 50), FColor::Red, false, 5.0f);
-    //}
+    for (FVector2D Cell : ObstacleCells)
+    {
+        FVector WorldPos = FVector(Cell.X * GridData->CellSize, Cell.Y * GridData->CellSize, 50); // Adjust Z if needed
+        DrawDebugBox(GetWorld(), WorldPos, FVector(GridData->CellSize / 2, GridData->CellSize / 2, 50), FColor::Red, false, 5.0f);
+    }
 }
 
 void AGridManager::GenerateGrid()
@@ -60,7 +60,17 @@ void AGridManager::CacheObstacles()
     TArray<AActor*> ObstacleActors;
     UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("Obstacle"), ObstacleActors);
 
+    TArray<AActor*> CharacterActors;
+    UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("Character"), CharacterActors);
+
+    // Merge both lists
     ObstacleCells.Empty();
+
+    for (AActor* Actor : CharacterActors)
+    {
+        FVector2D Cell = ConvertWorldToGrid(Actor->GetActorLocation());
+        ObstacleCells.Add(Cell);
+    }
 
     for (AActor* Obstacle : ObstacleActors)
     {
