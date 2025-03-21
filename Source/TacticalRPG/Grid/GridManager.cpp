@@ -37,11 +37,11 @@ void AGridManager::Tick(float DeltaTime)
     UpdateGridPosition();
 	UpdateHoveredCell();
  
-    for (FVector2D Cell : ObstacleCells)
-    {
-        FVector WorldPos = FVector(Cell.X * GridData->CellSize, Cell.Y * GridData->CellSize, 50); // Adjust Z if needed
-        DrawDebugBox(GetWorld(), WorldPos, FVector(GridData->CellSize / 2, GridData->CellSize / 2, 50), FColor::Red, false, 5.0f);
-    }
+    //for (FVector2D Cell : ObstacleCells)
+    //{
+    //    FVector WorldPos = FVector(Cell.X * GridData->CellSize, Cell.Y * GridData->CellSize, 50); // Adjust Z if needed
+    //    DrawDebugBox(GetWorld(), WorldPos, FVector(GridData->CellSize / 2, GridData->CellSize / 2, 50), FColor::Red, false, 5.0f);
+    //}
 }
 
 void AGridManager::GenerateGrid()
@@ -274,19 +274,18 @@ void AGridManager::HideMovementGrid()
     ValidCells.Empty();
 }
 
-void AGridManager::FindPathToCell(FVector2D Start, FVector2D Goal)
+TArray<FVector2D> AGridManager::FindPathToCell(FVector2D Start, FVector2D Goal)
 {
     if (!Pathfinding)
     {
         Pathfinding = GetWorld()->SpawnActor<APathfinding>();
     }
 
+    //TODO : Figure why the pathfinding doesn't work on enemy even though the start and goal are right
+
     TArray<FVector2D> Path = Pathfinding->FindPath(Start, Goal, ObstacleCells, GridData->GridSizeX, GridData->GridSizeY);
 
-    if (Path.Num() > 0)
-    {
-        ControlledCharacter->SetPath(Path);
-    }
+    return Path;
 }
 
 bool AGridManager::IsCellInRange(FVector2D CellIndex)
@@ -315,8 +314,6 @@ bool AGridManager::IsCellInRange(FVector2D CellIndex)
     FHitResult HitResult;
     FVector TileWorldPosition = FVector(CellIndex.X * GridData->CellSize, CellIndex.Y * GridData->CellSize, ControlledCharacter->GetActorLocation().Z);
 
-    //FVector Start = WorldLocation;
-    //FVector End = Start + (WorldDirection * CameraData->RaycastLenght);
     if (GetWorld()->LineTraceSingleByChannel(HitResult, TileWorldPosition + FVector(0, 0, 50), TileWorldPosition - FVector(0, 0, 50), ECC_Visibility))
     {
         AActor* HitActor = HitResult.GetActor();

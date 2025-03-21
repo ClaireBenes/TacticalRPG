@@ -38,7 +38,7 @@ public:
     FVector ConvertGridToWorld(FVector2D GridCoord) const;
 
     // Check if a given grid cell is valid for movement
-    void FindPathToCell(FVector2D Start, FVector2D Goal);
+    TArray<FVector2D> FindPathToCell(FVector2D Start, FVector2D Goal);
     bool IsCellInRange(FVector2D CellIndex);
 
     //Getters

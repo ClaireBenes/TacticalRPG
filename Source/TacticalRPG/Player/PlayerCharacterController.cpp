@@ -18,6 +18,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "EngineUtils.h"
 
+#include "TacticalRPG/Enemy/EnemyCharacter.h"
+
 APlayerCharacterController::APlayerCharacterController()
 {
 	bShowMouseCursor = true;
@@ -113,14 +115,23 @@ void APlayerCharacterController::MoveCharacter()
                 GridManager->HideMovementGrid();
 
                 FVector2D StartCell = GridManager->ConvertWorldToGrid(ControlledCharacter->GetActorLocation());
-                GridManager->FindPathToCell(StartCell, ClickedCell);
-                //ControlledCharacter->MoveToGridCell(NextTargetLocation);
+
+                TArray<FVector2D> Path = GridManager->FindPathToCell(StartCell, ClickedCell);
+                if (Path.Num() > 0)
+                {
+                    ControlledCharacter->SetPath(Path);
+                }
             }
             else
             {
                 UE_LOG(LogTemp, Warning, TEXT("Invalid Move: This tile is out of range!"));
             }
         }
+    }
+
+    for (TActorIterator<AEnemyCharacter> It(GetWorld()); It; ++It)
+    {
+        It->TakeTurn();
     }
 }
 

@@ -49,8 +49,6 @@ void APlayerCharacter::Tick(float DeltaTime)
 
         // Move smoothly using interpolation
         FVector NextLocation = FVector(Path[0].X * GridManager->GetGridSize(), Path[0].Y * GridManager->GetGridSize(), GetActorLocation().Z);
-        //FVector NewLocation = FMath::VInterpConstantTo(CurrentLocation, TargetLocation, DeltaTime, MoveSpeed);
-        //SetActorLocation(NewLocation);
 
         SetActorLocation(FMath::VInterpConstantTo(CurrentLocation, NextLocation, DeltaTime, MoveSpeed));
 
@@ -60,7 +58,7 @@ void APlayerCharacter::Tick(float DeltaTime)
         {
             FRotator TargetRotation = MoveDirection.Rotation();
 
-            // Apply Offset (Adjust Yaw by -90° if necessary)
+            // Apply Offset
             TargetRotation.Yaw -= 90.0f;
 
             FRotator NewRotation = FMath::RInterpTo(GetMesh()->GetComponentRotation(), TargetRotation, DeltaTime, 10.0f); // Smooth rotation speed
@@ -86,7 +84,6 @@ void APlayerCharacter::Tick(float DeltaTime)
 void APlayerCharacter::MoveToGridCell(FVector NewTargetLocation)
 {
     TargetLocation = NewTargetLocation; // Store the new movement target
-    //bIsMoving = true; // Enable movement logic
 }
 
 void APlayerCharacter::SetPath(TArray<FVector2D> NewPath)
