@@ -22,18 +22,39 @@ EBTNodeResult::Type UBTTask_MoveToTarget::ExecuteTask(UBehaviorTreeComponent& Ow
 
     if (EnemyCharacter && GridManager)
     {
-        TArray<FVector2D> Path = GridManager->FindPathToCell(
-            GridManager->ConvertWorldToGrid(EnemyCharacter->GetActorLocation()),
-            GridManager->ConvertWorldToGrid(Target->GetActorLocation())
-        );
+        FVector2D EnemyGridPos = GridManager->ConvertWorldToGrid(EnemyCharacter->GetActorLocation());
+        FVector2D TargetGridPos = GridManager->ConvertWorldToGrid(Target->GetActorLocation()); 
+
+        TArray<FVector2D> Path = GridManager->FindPathToCell(EnemyGridPos, TargetGridPos);
+
+        UE_LOG(LogTemp, Warning, TEXT("Generated Path Size: %d"), Path.Num()); // Debugging
+
 
         //TODO : Manage to fix my pb and have Path.Num actually be superior at 0
         if (Path.Num() > 0)
         {
             EnemyCharacter->SetPath(Path);
-            return EBTNodeResult::Succeeded;
+            // Set a flag in blackboard so the BT knows AI is moving
+            //AIController->GetBlackboardComponent()->SetValueAsBool("bIsMoving", true);
+
+            // Continue execution while AI moves
+            return EBTNodeResult::InProgress;
+            //return EBTNodeResult::Succeeded;
         }
     }
 
     return EBTNodeResult::Failed;
+}
+
+void UBTTask_MoveToTarget::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
+{
+    AEnemyCharacter* EnemyCharacter = Cast<AEnemyCharacter>(OwnerComp.GetAIOwner()->GetPawn());
+    if (!EnemyCharacter) return;
+
+    // Check if enemy finished moving
+    if (!EnemyCharacter->GetIsMoving())
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Enemy reached target, finishing task."));
+        FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+    }
 }

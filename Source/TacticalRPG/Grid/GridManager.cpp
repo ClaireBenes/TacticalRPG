@@ -96,7 +96,7 @@ void AGridManager::CacheObstacles()
         }
     }
 
-    UE_LOG(LogTemp, Warning, TEXT("Cached %d obstacle cells"), ObstacleCells.Num());
+    //UE_LOG(LogTemp, Warning, TEXT("Cached %d obstacle cells"), ObstacleCells.Num());
 }
 
 void AGridManager::UpdateGridPosition()
@@ -276,6 +276,8 @@ void AGridManager::HideMovementGrid()
 
 TArray<FVector2D> AGridManager::FindPathToCell(FVector2D Start, FVector2D Goal)
 {
+    //UE_LOG(LogTemp, Warning, TEXT("Finding path from (%f, %f) to (%f, %f)"), Start.X, Start.Y, Goal.X, Goal.Y);
+
     if (!Pathfinding)
     {
         Pathfinding = GetWorld()->SpawnActor<APathfinding>();
@@ -285,6 +287,7 @@ TArray<FVector2D> AGridManager::FindPathToCell(FVector2D Start, FVector2D Goal)
 
     TArray<FVector2D> Path = Pathfinding->FindPath(Start, Goal, ObstacleCells, GridData->GridSizeX, GridData->GridSizeY);
 
+    //UE_LOG(LogTemp, Warning, TEXT("Path found, length: %d"), Path.Num());
     return Path;
 }
 

@@ -19,5 +19,10 @@ void AEnemyAIController::BeginPlay()
 
 void AEnemyAIController::StartEnemyTurn()
 {
-    GetBlackboardComponent()->SetValueAsBool("bIsTurn", true);
+    if (GetBlackboardComponent()->GetValueAsBool("bIsTurn") == false)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Enemy Turn Started"));
+        GetBlackboardComponent()->SetValueAsBool("bIsTurn", true);
+        GetBlackboardComponent()->SetValueAsBool("bIsMoving", false); // Reset moving flag
+    }
 }

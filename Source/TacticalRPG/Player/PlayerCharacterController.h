@@ -11,6 +11,7 @@ class AGridManager;
 class APlayerCharacter;
 class ACameraPawn;
 
+
 UCLASS()
 class TACTICALRPG_API APlayerCharacterController : public APlayerController
 {

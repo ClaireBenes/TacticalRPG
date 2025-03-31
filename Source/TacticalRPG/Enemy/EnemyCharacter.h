@@ -30,6 +30,8 @@ public:
 	UFUNCTION()
 	void SetPath(TArray<FVector2D> NewPath);
 
+	bool GetIsMoving();
+
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
     AEnemyAIController* AIControllerRef = nullptr;
 

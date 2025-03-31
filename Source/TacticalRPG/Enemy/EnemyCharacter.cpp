@@ -2,6 +2,7 @@
 
 #include "TacticalRPG/Enemy/EnemyAIController.h"
 #include "TacticalRPG/Grid/GridManager.h"
+#include "BehaviorTree/BlackboardComponent.h"
 
 #include "EngineUtils.h"
 
@@ -43,7 +44,10 @@ void AEnemyCharacter::Tick(float DeltaTime)
 
         FVector CurrentLocation = GetActorLocation();
 
-        FVector NextLocation = FVector(Path[0].X * GridManager->GridData->GridSizeX, Path[0].Y * GridManager->GridData->GridSizeY, GetActorLocation().Z);
+        FVector NextLocation = FVector(
+            Path[0].X * GridManager->GridData->GridSizeX, 
+            Path[0].Y * GridManager->GridData->GridSizeY, 
+            GetActorLocation().Z);
 
         SetActorLocation(FMath::VInterpConstantTo(CurrentLocation, NextLocation, DeltaTime, MoveSpeed));
 
@@ -63,6 +67,13 @@ void AEnemyCharacter::Tick(float DeltaTime)
             {
                 SetActorLocation(NextLocation);
                 bIsMoving = false;
+
+                if (AIControllerRef && AIControllerRef->GetBlackboardComponent())
+                {
+                    AIControllerRef->GetBlackboardComponent()->SetValueAsBool("bIsMoving", false);
+                }
+
+                UE_LOG(LogTemp, Warning, TEXT("Enemy finished moving!"));
             }
         }
     }
@@ -80,5 +91,17 @@ void AEnemyCharacter::SetPath(TArray<FVector2D> NewPath)
 {
 	Path = NewPath;
 	bIsMoving = true;
+
+    // Update Blackboard
+    AEnemyAIController* AIController = Cast<AEnemyAIController>(GetController());
+    if (AIController && AIController->GetBlackboardComponent())
+    {
+        AIController->GetBlackboardComponent()->SetValueAsBool("bIsMoving", true);
+    }
+}
+
+bool AEnemyCharacter::GetIsMoving()
+{
+    return bIsMoving;
 }
 
