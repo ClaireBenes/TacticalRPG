@@ -233,17 +233,12 @@ void AGridManager::UpdateHoveredCell()
                 } 
             }   
 
-
-            //FVector TopRight = CellWorldLocation + FVector(GridData->CellSize / 2, GridData->CellSize / 2, 0);
-            //FVector BottomLeft = CellWorldLocation + FVector(-GridData->CellSize / 2, -GridData->CellSize / 2, 0);
-            //FVector BottomRight = CellWorldLocation + FVector(GridData->CellSize / 2, -GridData->CellSize / 2, 0);
-
-
-            // Draw the hover outline (Green = Valid, Red = Invalid)
-            FVector CellWorldPos = ConvertGridToWorld(CellIndex) + FVector(0, 0, 5);
-            DrawDebugBox(GetWorld(), CellWorldPos, FVector(GridData->CellSize / 2, -GridData->CellSize / 2, 0),
-                bCanClick ? GridData->ValidCellColor : GridData->WrongCellColor, false, -1, 0, GridData->OutlineSize);
-
+            if (bCanClick)
+            {
+                FVector CellWorldPos = ConvertGridToWorld(CellIndex) + FVector(0, 0, 5);
+                DrawDebugBox(GetWorld(), CellWorldPos, FVector(GridData->CellSize / 2, -GridData->CellSize / 2, 0),
+                    GridData->ValidCellColor, false, -1, 0, GridData->OutlineSize);
+            }
 
             DrawDebugLine(GetWorld(), Start, HitLocation, FColor::Green, false, -1.0f);
             DrawDebugPoint(GetWorld(), HitLocation, 5.0f, FColor::Green, false, -1.0f);
