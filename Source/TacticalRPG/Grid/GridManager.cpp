@@ -122,12 +122,17 @@ void AGridManager::UpdateGridPosition()
         for (int Y = -GridData->GridSizeY / 2; Y <= GridData->GridSizeY / 2; Y++)
         {
             FVector CellLocation = PlayerLocation + FVector(X * GridData->CellSize, Y * GridData->CellSize, 0);
-            FVector2D CellIndex = FVector2D(X + (PlayerLocation.X / GridData->CellSize), Y + (PlayerLocation.Y / GridData->CellSize));
+
+            FVector2D CenterCell = ConvertWorldToGrid(PlayerLocation);
+            FVector2D CellIndex = FVector2D(CenterCell.X + X, CenterCell.Y + Y);
 
             // Create an invisible actor for tiles that can be moved onto
             if (IsCellInRange(CellIndex))
             {
-                ValidCells.Add(CellIndex); // Store only valid movement tiles
+                if (!GridCharacterMap.Contains(CellIndex) && !ObstacleCells.Contains(CellIndex))
+                {
+                    ValidCells.Add(CellIndex); // Store only valid movement tiles
+                }
             }
         }
     }
@@ -236,8 +241,10 @@ void AGridManager::UpdateHoveredCell()
             }
 
             // Draw the hover outline (Green = Valid, Red = Invalid)
-            DrawDebugBox(GetWorld(), FVector(CellX * GridData->CellSize, CellY * GridData->CellSize, 5), FVector(GridData->CellSize / 2, GridData->CellSize / 2, 5),
+            FVector CellWorldPos = ConvertGridToWorld(CellIndex) + FVector(0, 0, 5);
+            DrawDebugBox(GetWorld(), CellWorldPos, FVector(GridData->CellSize / 2, GridData->CellSize / 2, 5),
                 bCanClick ? FColor::Green : FColor::Red, false, -1, 0, 5);
+
 
             DrawDebugLine(GetWorld(), Start, HitLocation, FColor::Green, false, -1.0f);
             DrawDebugPoint(GetWorld(), HitLocation, 5.0f, FColor::Green, false, -1.0f);
