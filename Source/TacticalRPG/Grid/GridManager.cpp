@@ -95,8 +95,6 @@ void AGridManager::CacheObstacles()
             }
         }
     }
-
-    //UE_LOG(LogTemp, Warning, TEXT("Cached %d obstacle cells"), ObstacleCells.Num());
 }
 
 void AGridManager::UpdateGridPosition()
@@ -113,8 +111,7 @@ void AGridManager::UpdateGridPosition()
     PlayerLocation.Z = 0;
 
     // Clear previous debug grid
-    FlushPersistentDebugLines(GetWorld());
-    ValidCells.Empty();
+    HideMovementGrid();
 
     // Draw the grid centered around the player
     for (int X = -GridData->GridSizeX / 2; X <= GridData->GridSizeX / 2; X++)
@@ -156,26 +153,24 @@ void AGridManager::UpdateGridPosition()
 
         if (!ValidCells.Contains(Neighbors[0])) // Right Edge
         {
-            DrawDebugLine(GetWorld(), TopRight, BottomRight, FColor::Green, true, -1, 0, 3);
+            DrawDebugLine(GetWorld(), TopRight, BottomRight, GridData->ValidCellColor, true, -1, 0, GridData->OutlineSize);
         }
         if (!ValidCells.Contains(Neighbors[1])) // Left Edge
         {
-            DrawDebugLine(GetWorld(), TopLeft, BottomLeft, FColor::Green, true, -1, 0, 3);
+            DrawDebugLine(GetWorld(), TopLeft, BottomLeft, GridData->ValidCellColor, true, -1, 0, GridData->OutlineSize);
         }
         if (!ValidCells.Contains(Neighbors[2])) // Top Edge
         {
-            DrawDebugLine(GetWorld(), TopLeft, TopRight, FColor::Green, true, -1, 0, 3);
+            DrawDebugLine(GetWorld(), TopLeft, TopRight, GridData->ValidCellColor, true, -1, 0, GridData->OutlineSize);
         }
         if (!ValidCells.Contains(Neighbors[3])) // Bottom Edge
         {
-            DrawDebugLine(GetWorld(), BottomLeft, BottomRight, FColor::Green, true, -1, 0, 3);
+            DrawDebugLine(GetWorld(), BottomLeft, BottomRight, GridData->ValidCellColor, true, -1, 0, GridData->OutlineSize);
         }
     }
 
     // Store new cell pos of character
-    int CellX = FMath::RoundToInt(ControlledCharacter->GetActorLocation().X / GridData->CellSize);
-    int CellY = FMath::RoundToInt(ControlledCharacter->GetActorLocation().Y / GridData->CellSize);
-    FVector2D NewCellIndex(CellX, CellY);
+    FVector2D NewCellIndex = ConvertWorldToGrid(ControlledCharacter->GetActorLocation());
 
     // Remove character from previous cell
     for (auto It = GridCharacterMap.CreateIterator(); It; ++It)
@@ -213,15 +208,13 @@ void AGridManager::UpdateHoveredCell()
             FVector HitLocation = HitResult.Location;
             AActor* HitActor = HitResult.GetActor();
 
-            int CellX = FMath::RoundToInt(HitLocation.X / GridData->CellSize);
-            int CellY = FMath::RoundToInt(HitLocation.Y / GridData->CellSize);
-            FVector2D CellIndex(CellX, CellY);
+            FVector2D CellIndex = ConvertWorldToGrid(HitLocation);
 
-            bool bCanClick = false;
             APlayerCharacterController* PlayerCharacterController = Cast<APlayerCharacterController>(PlayerController);
             PlayerCharacterController->HoveredCharacter = nullptr;
 
-            // Direct hit detection (if mouse is over character)
+            bool bCanClick = false;
+             //Direct hit detection (if mouse is over character)
             if (IsValid(PlayerCharacterController))
             {
                 if (HitActor != nullptr && Cast<APlayerCharacter>(HitActor))
@@ -237,13 +230,19 @@ void AGridManager::UpdateHoveredCell()
                 else if (ValidCells.Contains(CellIndex))
                 {
                     bCanClick = true;
-                }
-            }
+                } 
+            }   
+
+
+            //FVector TopRight = CellWorldLocation + FVector(GridData->CellSize / 2, GridData->CellSize / 2, 0);
+            //FVector BottomLeft = CellWorldLocation + FVector(-GridData->CellSize / 2, -GridData->CellSize / 2, 0);
+            //FVector BottomRight = CellWorldLocation + FVector(GridData->CellSize / 2, -GridData->CellSize / 2, 0);
+
 
             // Draw the hover outline (Green = Valid, Red = Invalid)
             FVector CellWorldPos = ConvertGridToWorld(CellIndex) + FVector(0, 0, 5);
-            DrawDebugBox(GetWorld(), CellWorldPos, FVector(GridData->CellSize / 2, GridData->CellSize / 2, 5),
-                bCanClick ? FColor::Green : FColor::Red, false, -1, 0, 5);
+            DrawDebugBox(GetWorld(), CellWorldPos, FVector(GridData->CellSize / 2, -GridData->CellSize / 2, 0),
+                bCanClick ? GridData->ValidCellColor : GridData->WrongCellColor, false, -1, 0, GridData->OutlineSize);
 
 
             DrawDebugLine(GetWorld(), Start, HitLocation, FColor::Green, false, -1.0f);
@@ -251,7 +250,7 @@ void AGridManager::UpdateHoveredCell()
         }
         else
         {
-            DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, -1.0f);
+            DrawDebugLine(GetWorld(), Start, End, GridData->WrongCellColor, false, -1.0f);
         }
     }
 }
@@ -283,18 +282,13 @@ void AGridManager::HideMovementGrid()
 
 TArray<FVector2D> AGridManager::FindPathToCell(FVector2D Start, FVector2D Goal)
 {
-    //UE_LOG(LogTemp, Warning, TEXT("Finding path from (%f, %f) to (%f, %f)"), Start.X, Start.Y, Goal.X, Goal.Y);
-
     if (!Pathfinding)
     {
         Pathfinding = GetWorld()->SpawnActor<APathfinding>();
     }
 
-    //TODO : Figure why the pathfinding doesn't work on enemy even though the start and goal are right
-
     TArray<FVector2D> Path = Pathfinding->FindPath(Start, Goal, ObstacleCells, GridData->GridSizeX, GridData->GridSizeY);
 
-    //UE_LOG(LogTemp, Warning, TEXT("Path found, length: %d"), Path.Num());
     return Path;
 }
 
@@ -318,19 +312,6 @@ bool AGridManager::IsCellInRange(FVector2D CellIndex)
     if (!bIsWithinRange)
     {
         return false;
-    }
-
-    // If you have obstacles, check if the tile is occupied
-    FHitResult HitResult;
-    FVector TileWorldPosition = FVector(CellIndex.X * GridData->CellSize, CellIndex.Y * GridData->CellSize, ControlledCharacter->GetActorLocation().Z);
-
-    if (GetWorld()->LineTraceSingleByChannel(HitResult, TileWorldPosition + FVector(0, 0, 50), TileWorldPosition - FVector(0, 0, 50), ECC_Visibility))
-    {
-        AActor* HitActor = HitResult.GetActor();
-        if (HitActor != nullptr && HitActor->ActorHasTag("Obstacle"))
-        {
-            return false; // Tile is blocked
-        }
     }
 
     return true; // Otherwise, the cell is valid for movement

@@ -77,4 +77,7 @@ private:
     TSet<FVector2D> ObstacleCells; // Stores obstacles in grid coordinates
     TSet<FVector2D> ValidCells; // Stores all valid movement cells
     TMap<FVector2D, APlayerCharacter*> GridCharacterMap; //Store all cells where character are standing on
+
+    FColor ValidCellColor = FColor::Black;
+    FColor WrongCellColor = FColor::White;
 };

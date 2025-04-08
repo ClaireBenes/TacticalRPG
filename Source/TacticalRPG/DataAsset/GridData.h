@@ -22,4 +22,13 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellSize")
 	float CellSize = 100.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Outline | Color")
+	FColor ValidCellColor = FColor::Black;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Outline | Color")
+	FColor WrongCellColor = FColor::White;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Outline")
+	float OutlineSize = 1.0f;
 };
