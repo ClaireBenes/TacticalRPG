@@ -24,7 +24,10 @@ public:
 	float CellSize = 100.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Outline | Color")
-	FColor ValidCellColor = FColor::Black;
+	FColor ValidWhiteCellColor = FColor::Black;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Outline | Color")
+	FColor ValidBlackCellColor = FColor::Black;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Outline | Color")
 	FColor WrongCellColor = FColor::White;

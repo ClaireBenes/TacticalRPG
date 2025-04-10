@@ -41,6 +41,8 @@ public:
     TArray<FVector2D> FindPathToCell(FVector2D Start, FVector2D Goal);
     bool IsCellInRange(FVector2D CellIndex);
 
+    void ValidCellColorIsWhite(bool isWhite);
+
     //Getters
     float GetGridSize() const { return GridData->CellSize; }
     TSet<FVector2D> GetValidCells();
@@ -79,5 +81,4 @@ private:
     TMap<FVector2D, APlayerCharacter*> GridCharacterMap; //Store all cells where character are standing on
 
     FColor ValidCellColor = FColor::Black;
-    FColor WrongCellColor = FColor::White;
 };

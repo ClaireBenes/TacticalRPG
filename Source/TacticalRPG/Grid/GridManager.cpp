@@ -153,19 +153,19 @@ void AGridManager::UpdateGridPosition()
 
         if (!ValidCells.Contains(Neighbors[0])) // Right Edge
         {
-            DrawDebugLine(GetWorld(), TopRight, BottomRight, GridData->ValidCellColor, true, -1, 0, GridData->OutlineSize);
+            DrawDebugLine(GetWorld(), TopRight, BottomRight, ValidCellColor, true, -1, 0, GridData->OutlineSize);
         }
         if (!ValidCells.Contains(Neighbors[1])) // Left Edge
         {
-            DrawDebugLine(GetWorld(), TopLeft, BottomLeft, GridData->ValidCellColor, true, -1, 0, GridData->OutlineSize);
+            DrawDebugLine(GetWorld(), TopLeft, BottomLeft, ValidCellColor, true, -1, 0, GridData->OutlineSize);
         }
         if (!ValidCells.Contains(Neighbors[2])) // Top Edge
         {
-            DrawDebugLine(GetWorld(), TopLeft, TopRight, GridData->ValidCellColor, true, -1, 0, GridData->OutlineSize);
+            DrawDebugLine(GetWorld(), TopLeft, TopRight, ValidCellColor, true, -1, 0, GridData->OutlineSize);
         }
         if (!ValidCells.Contains(Neighbors[3])) // Bottom Edge
         {
-            DrawDebugLine(GetWorld(), BottomLeft, BottomRight, GridData->ValidCellColor, true, -1, 0, GridData->OutlineSize);
+            DrawDebugLine(GetWorld(), BottomLeft, BottomRight, ValidCellColor, true, -1, 0, GridData->OutlineSize);
         }
     }
 
@@ -237,7 +237,7 @@ void AGridManager::UpdateHoveredCell()
             {
                 FVector CellWorldPos = ConvertGridToWorld(CellIndex) + FVector(0, 0, 5);
                 DrawDebugBox(GetWorld(), CellWorldPos, FVector(GridData->CellSize / 2, -GridData->CellSize / 2, 0),
-                    GridData->ValidCellColor, false, -1, 0, GridData->OutlineSize);
+                    ValidCellColor, false, -1, 0, GridData->OutlineSize);
             }
 
             DrawDebugLine(GetWorld(), Start, HitLocation, FColor::Green, false, -1.0f);
@@ -310,6 +310,18 @@ bool AGridManager::IsCellInRange(FVector2D CellIndex)
     }
 
     return true; // Otherwise, the cell is valid for movement
+}
+
+void AGridManager::ValidCellColorIsWhite(bool isWhite)
+{
+    if (isWhite)
+    {
+        ValidCellColor = GridData->ValidWhiteCellColor;
+        return;
+    }
+
+    ValidCellColor = GridData->ValidBlackCellColor;
+    return;
 }
 
 TSet<FVector2D> AGridManager::GetValidCells()

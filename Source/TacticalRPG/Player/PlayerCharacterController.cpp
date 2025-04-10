@@ -243,15 +243,19 @@ void APlayerCharacterController::UpdatePostProcessMaterial()
     if (bUsingMaterialWhite)
     {
         PostProcessVolumeRef->Settings.RemoveBlendable(PostProcessWhite);
-
         PostProcessVolumeRef->Settings.AddBlendable(PostProcessBlack, 0.1f); 
+
+        GridManager->ValidCellColorIsWhite(false);
+
         bUsingMaterialWhite = false;
     }
     else
     {
         PostProcessVolumeRef->Settings.RemoveBlendable(PostProcessBlack);
-
         PostProcessVolumeRef->Settings.AddBlendable(PostProcessWhite, 0.1f);
+
+        GridManager->ValidCellColorIsWhite(true);
+
         bUsingMaterialWhite = true;
     }
 }
