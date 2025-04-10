@@ -29,10 +29,6 @@ void APlayerCharacterController::BeginPlay()
 {
     Super::BeginPlay();
 
-    // Get the controlled PlayerCharacter
-    AActor* FoundActor = UGameplayStatics::GetActorOfClass(GetWorld(), APlayerCharacter::StaticClass());
-    ControlledCharacter = Cast<APlayerCharacter>(FoundActor);
-
     CameraPawn = Cast<ACameraPawn>(GetPawn());
 
     // Find GridManager in the world
@@ -50,6 +46,9 @@ void APlayerCharacterController::BeginPlay()
             InputSubsystem->AddMappingContext(DefaultInputMappingContext, 0);
         }
     }
+
+    AActor* FoundActor = UGameplayStatics::GetActorOfClass(GetWorld(), APostProcessVolume::StaticClass());
+    PostProcessVolumeRef = Cast<APostProcessVolume>(FoundActor);
 }
 
 void APlayerCharacterController::SetupInputComponent()
@@ -165,6 +164,8 @@ void APlayerCharacterController::CameraAttachToCharacter()
 
     GridManager->ControlledCharacter = ControlledCharacter;
     GridManager->UpdateGridPosition();
+
+    UpdatePostProcessMaterial();
 }
 
 void APlayerCharacterController::Zoom(const FInputActionValue& Value)
@@ -222,4 +223,35 @@ void APlayerCharacterController::RotateCamera()
 
     float SpringArmRotZ = CameraPawn->SpringArm->GetComponentRotation().Yaw;
     CameraPawn->ForwardArrow->SetWorldRotation(FRotator(0.0f, SpringArmRotZ, 0.0f));
+}
+
+void APlayerCharacterController::UpdatePostProcessMaterial()
+{
+    if (!IsValid(PostProcessVolumeRef))
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Invalid PostProcessVolume"));
+        return;
+    }
+
+    if (!IsValid(PostProcessBlack) || !IsValid(PostProcessWhite))
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Invalid Materials."));
+        return;
+    }
+
+    // Switch between both material
+    if (bUsingMaterialWhite)
+    {
+        PostProcessVolumeRef->Settings.RemoveBlendable(PostProcessWhite);
+
+        PostProcessVolumeRef->Settings.AddBlendable(PostProcessBlack, 0.1f); 
+        bUsingMaterialWhite = false;
+    }
+    else
+    {
+        PostProcessVolumeRef->Settings.RemoveBlendable(PostProcessBlack);
+
+        PostProcessVolumeRef->Settings.AddBlendable(PostProcessWhite, 0.1f);
+        bUsingMaterialWhite = true;
+    }
 }

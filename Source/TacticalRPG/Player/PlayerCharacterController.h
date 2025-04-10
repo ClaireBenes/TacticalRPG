@@ -51,6 +51,9 @@ private:
     UFUNCTION(BlueprintCallable, Category = "Input")
     void RotateCamera(); // Handles camera rotation
 
+    //Post process
+    void UpdatePostProcessMaterial();
+
 private:
     // **** Properties ****
     UPROPERTY(EditAnywhere, Category = "Input")
@@ -68,7 +71,16 @@ private:
     UPROPERTY(EditAnywhere, Category = "Input")
     UInputMappingContext* DefaultInputMappingContext = nullptr;
 
+    UPROPERTY(EditAnywhere, Category = "Post Process")
+    UMaterialInterface* PostProcessWhite = nullptr;
+
+    UPROPERTY(EditAnywhere, Category = "Post Process")
+    UMaterialInterface* PostProcessBlack = nullptr;
+
+    APostProcessVolume* PostProcessVolumeRef = nullptr;
     APlayerCharacter* ControlledCharacter = nullptr;
     AGridManager* GridManager = nullptr;
     ACameraPawn* CameraPawn = nullptr;
+
+    bool bUsingMaterialWhite = true;
 };
