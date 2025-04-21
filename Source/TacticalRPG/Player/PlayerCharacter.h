@@ -33,6 +33,12 @@ public:
 	bool IsCharacterMoving() const { return bIsMoving; }
 	int GetMaxMoveRange() const { return MaxMoveRange;  }
 
+	UFUNCTION(BlueprintImplementableEvent, Category = "Animation")
+	void Walk();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Animation")
+	void Idle();
+
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Camera")
 	USpringArmComponent* SpringArm;

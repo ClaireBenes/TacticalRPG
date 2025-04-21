@@ -76,6 +76,7 @@ void APlayerCharacter::Tick(float DeltaTime)
 
                 // Show movement grid again
                 GridManager->UpdateGridPosition();
+                Idle();
             }        
         }
     }
@@ -90,6 +91,8 @@ void APlayerCharacter::SetPath(TArray<FVector2D> NewPath)
 {
     Path = NewPath;
     bIsMoving = true;
+
+    Walk();
 }
 
 
