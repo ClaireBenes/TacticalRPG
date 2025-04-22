@@ -39,6 +39,9 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Animation")
 	void Idle();
 
+	UFUNCTION(BlueprintImplementableEvent, Category = "Animation")
+	void OnChosen();
+
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Camera")
 	USpringArmComponent* SpringArm;

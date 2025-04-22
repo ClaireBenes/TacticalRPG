@@ -240,12 +240,12 @@ void AGridManager::UpdateHoveredCell()
                     ValidCellColor, false, -1, 0, GridData->OutlineSize);
             }
 
-            DrawDebugLine(GetWorld(), Start, HitLocation, FColor::Green, false, -1.0f);
-            DrawDebugPoint(GetWorld(), HitLocation, 5.0f, FColor::Green, false, -1.0f);
+            //DrawDebugLine(GetWorld(), Start, HitLocation, FColor::Green, false, -1.0f);
+            //DrawDebugPoint(GetWorld(), HitLocation, 5.0f, FColor::Green, false, -1.0f);
         }
         else
         {
-            DrawDebugLine(GetWorld(), Start, End, GridData->WrongCellColor, false, -1.0f);
+            //DrawDebugLine(GetWorld(), Start, End, GridData->WrongCellColor, false, -1.0f);
         }
     }
 }
