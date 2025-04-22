@@ -163,9 +163,11 @@ void APlayerCharacterController::CameraAttachToCharacter()
     CameraPawn->AttachToActor(ControlledCharacter,FAttachmentTransformRules::KeepWorldTransform);
 
     GridManager->ControlledCharacter = ControlledCharacter;
+    ControlledCharacter->OnChosen();
     GridManager->UpdateGridPosition();
 
     UpdatePostProcessMaterial();
+
 }
 
 void APlayerCharacterController::Zoom(const FInputActionValue& Value)
