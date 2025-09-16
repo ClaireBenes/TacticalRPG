@@ -16,7 +16,8 @@ This project explores **gameplay systems** for tactical movement, **AI navigatio
 ## 🎥 Video  
 
 🎥 **Step-by-Step Progress Overview**  
-[![Tactical RPG Overview](https://img.youtube.com/vi/fG-2FSBOmpo/0.jpg)](https://youtu.be/fG-2FSBOmpo)  
+https://github.com/user-attachments/assets/3fe097e4-4327-4b79-9f0d-d5578c3c416c
+
 
 ## 📌 Status  
 
